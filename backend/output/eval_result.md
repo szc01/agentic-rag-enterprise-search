@@ -1,6 +1,6 @@
 # 检索评测：四组消融对比
 
-- 知识库规模：385 chunks / 17 文档（10 个合成多主题企业文档 + 既有 e2e 文档）
+- 知识库规模：402 chunks / 22 文档（合成多主题企业文档 + 真实公开文档片段 + 既有 e2e 文档）
 - 评测集规模：110 条（基线直配 + 同义改写 + 跨语言 + 多主题干扰 + 反向否定，每类各 22 条）
 - 指标定义：top-k 命中率 = 期望关键词出现在前 k 个结果中的比例；MRR = 1/首个命中排名 的平均值；nDCG@5 = 二值相关性（命中=1）下的归一化折损累计增益
 
@@ -23,7 +23,7 @@
 | 13 | 跨语言 | Which edge gateway connects field devices to the IIoT platform? | `玄铁-9 边缘网关` | ✗ | ✓@1 | ✓@4 | ✗ |
 | 14 | 多主题干扰 | 物联网平台既有边缘网关也有告警模块，负责设备接入的网关是哪一个？ | `玄铁-9 边缘网关` | ✓@1 | ✓@1 | ✓@1 | ✓@1 |
 | 15 | 反向否定 | 设备不是直连云平台，而是先接入哪个边缘网关？ | `玄铁-9 边缘网关` | ✓@1 | ✓@1 | ✓@1 | ✓@1 |
-| 16 | 基线直配 | 工业物联网平台的时序数据用什么算法压缩？ | `时序数据采用 LZ4 压缩` | ✓@1 | ✓@1 | ✓@1 | ✓@1 |
+| 16 | 基线直配 | 工业物联网平台的时序数据用什么算法压缩？ | `时序数据采用 LZ4 压缩` | ✓@2 | ✓@1 | ✓@1 | ✓@1 |
 | 17 | 同义改写 | 平台为了省存储空间，对时序数据做了哪种压缩处理？ | `时序数据采用 LZ4 压缩` | ✓@1 | ✓@1 | ✓@1 | ✓@1 |
 | 18 | 跨语言 | What compression algorithm is applied to time-series data in the IIoT platform? | `时序数据采用 LZ4 压缩` | ✗ | ✓@2 | ✓@4 | ✓@1 |
 | 19 | 多主题干扰 | 平台既有数据压缩也有边缘网关，针对时序数据采用的压缩算法是什么？ | `时序数据采用 LZ4 压缩` | ✓@1 | ✓@1 | ✓@1 | ✓@1 |
@@ -56,7 +56,7 @@
 | 46 | 基线直配 | 数据仓库采用几层数仓模型？ | `四层数仓模型` | ✓@1 | ✓@1 | ✓@1 | ✓@1 |
 | 47 | 同义改写 | 公司数仓把数据分成了几个层次来组织？ | `四层数仓模型` | ✓@2 | ✓@1 | ✓@2 | ✓@1 |
 | 48 | 跨语言 | How many layers does the data warehouse model use? | `四层数仓模型` | ✗ | ✗ | ✗ | ✗ |
-| 49 | 多主题干扰 | 数仓规范里有分层和建模两套约定，数据分层用的是哪套模型？ | `四层数仓模型` | ✓@1 | ✓@1 | ✓@1 | ✓@1 |
+| 49 | 多主题干扰 | 数仓规范里有分层和建模两套约定，数据分层用的是哪套模型？ | `四层数仓模型` | ✓@2 | ✓@1 | ✓@1 | ✓@1 |
 | 50 | 反向否定 | 数仓不是单层平铺，而是采用了哪种分层模型？ | `四层数仓模型` | ✓@1 | ✓@1 | ✓@1 | ✓@1 |
 | 51 | 基线直配 | 维度表用什么作为主键？ | `维度表使用代理键` | ✓@1 | ✓@1 | ✓@1 | ✓@1 |
 | 52 | 同义改写 | 数仓的维度表主键采用哪种键来隔离业务主键变化？ | `维度表使用代理键` | ✓@1 | ✓@1 | ✓@1 | ✓@1 |
@@ -64,13 +64,13 @@
 | 54 | 多主题干扰 | 数仓有事实表和维度表，维度表主键用的是什么键？ | `维度表使用代理键` | ✓@1 | ✓@1 | ✓@1 | ✓@1 |
 | 55 | 反向否定 | 维度表不用业务主键，而是用什么键作为主键？ | `维度表使用代理键` | ✓@1 | ✓@1 | ✓@1 | ✓@1 |
 | 56 | 基线直配 | Which index does the platform rely on for high recall at scale? | `HNSW graph-based index` | ✓@1 | ✓@1 | ✓@1 | ✓@1 |
-| 57 | 同义改写 | What graph structure gives the vector database fast approximate search? | `HNSW graph-based index` | ✓@4 | ✓@3 | ✓@4 | ✓@4 |
-| 58 | 跨语言 | 平台为了高召回率采用了哪种图索引？ | `HNSW graph-based index` | ✗ | ✓@1 | ✓@2 | ✗ |
+| 57 | 同义改写 | What graph structure gives the vector database fast approximate search? | `HNSW graph-based index` | ✓@4 | ✓@3 | ✓@4 | ✓@5 |
+| 58 | 跨语言 | 平台为了高召回率采用了哪种图索引？ | `HNSW graph-based index` | ✗ | ✓@2 | ✓@4 | ✗ |
 | 59 | 多主题干扰 | The vector store has both graph and inverted-file indexes; which one is chosen for high recall? | `HNSW graph-based index` | ✓@1 | ✓@2 | ✓@1 | ✓@2 |
 | 60 | 反向否定 | The platform does not use brute force search, relying instead on which graph-based index? | `HNSW graph-based index` | ✓@1 | ✓@1 | ✓@1 | ✓@1 |
 | 61 | 基线直配 | What technique compresses vectors into short codes to cut memory? | `Product quantization compresses vectors` | ✓@1 | ✓@1 | ✓@1 | ✓@1 |
 | 62 | 同义改写 | How does the vector database shrink vector memory footprint? | `Product quantization compresses vectors` | ✓@1 | ✓@1 | ✓@1 | ✓@1 |
-| 63 | 跨语言 | 用什么技术把向量压缩成短码以节省内存？ | `Product quantization compresses vectors` | ✗ | ✓@1 | ✓@2 | ✓@1 |
+| 63 | 跨语言 | 用什么技术把向量压缩成短码以节省内存？ | `Product quantization compresses vectors` | ✗ | ✓@1 | ✓@4 | ✓@4 |
 | 64 | 多主题干扰 | Vector stores offer HNSW and quantization; which one compresses vectors to reduce memory? | `Product quantization compresses vectors` | ✓@1 | ✓@1 | ✓@1 | ✓@1 |
 | 65 | 反向否定 | Instead of storing full-precision vectors, which method compresses them into short codes? | `Product quantization compresses vectors` | ✓@1 | ✓@1 | ✓@1 | ✓@1 |
 | 66 | 基线直配 | Which index partitions vectors into clusters for batch queries? | `IVF inverted file index` | ✓@1 | ✓@1 | ✓@1 | ✓@1 |
@@ -80,12 +80,12 @@
 | 70 | 反向否定 | This index does not build a graph; instead it partitions vectors into clusters. Which index is it? | `IVF inverted file index` | ✓@2 | ✗ | ✓@2 | ✓@2 |
 | 71 | 基线直配 | What model does the candidate generation stage use? | `two-tower retrieval model` | ✓@1 | ✓@1 | ✓@1 | ✓@1 |
 | 72 | 同义改写 | Which architecture maps users and items into one embedding space? | `two-tower retrieval model` | ✓@1 | ✗ | ✓@1 | ✓@1 |
-| 73 | 跨语言 | 候选生成阶段采用哪种双塔模型？ | `two-tower retrieval model` | ✗ | ✓@1 | ✓@2 | ✓@1 |
+| 73 | 跨语言 | 候选生成阶段采用哪种双塔模型？ | `two-tower retrieval model` | ✗ | ✓@1 | ✓@3 | ✓@2 |
 | 74 | 多主题干扰 | The recommender has retrieval and ranking stages; which model powers the retrieval stage? | `two-tower retrieval model` | ✓@1 | ✗ | ✓@2 | ✓@1 |
 | 75 | 反向否定 | Candidate generation does not scan all items linearly; it uses which retrieval model? | `two-tower retrieval model` | ✓@1 | ✓@2 | ✓@1 | ✓@1 |
 | 76 | 基线直配 | What correction does ranking apply to offset click position bias? | `positional bias correction` | ✓@1 | ✓@1 | ✓@1 | ✓@1 |
 | 77 | 同义改写 | How does the ranking stage fix the tendency to click top items? | `positional bias correction` | ✓@1 | ✓@1 | ✓@1 | ✓@1 |
-| 78 | 跨语言 | 排序阶段用什么校正来抵消位置偏差？ | `positional bias correction` | ✗ | ✓@1 | ✓@2 | ✓@5 |
+| 78 | 跨语言 | 排序阶段用什么校正来抵消位置偏差？ | `positional bias correction` | ✗ | ✓@2 | ✓@3 | ✗ |
 | 79 | 多主题干扰 | The recommender handles cold start and ranking; which correction fixes the position bias in ranking? | `positional bias correction` | ✓@1 | ✓@2 | ✓@1 | ✓@1 |
 | 80 | 反向否定 | Ranking must not assume top positions are truly relevant, so it applies which correction? | `positional bias correction` | ✓@1 | ✓@1 | ✓@1 | ✓@1 |
 | 81 | 基线直配 | 增值税专用发票的抬头有什么要求？ | `发票抬头必须为全称` | ✓@1 | ✓@1 | ✓@1 | ✓@1 |
@@ -123,11 +123,11 @@
 
 | 指标 | BM25-only | 向量-only | BM25+向量 | BM25+向量+Reranker |
 |---|---|---|---|---|
-| top-1 命中率 | 72.73% | 74.55% | 69.09% | 76.36% |
-| top-3 命中率 | 76.36% | 82.73% | 83.64% | 83.64% |
-| top-5 命中率 | 77.27% | 83.64% | 89.09% | 85.45% |
-| MRR | 0.7462 | 0.7871 | 0.7708 | 0.8026 |
-| nDCG@5 | 0.7529 | 0.7991 | 0.7989 | 0.8150 |
+| top-1 命中率 | 70.91% | 72.73% | 69.09% | 74.55% |
+| top-3 命中率 | 76.36% | 82.73% | 81.82% | 82.73% |
+| top-5 命中率 | 77.27% | 83.64% | 89.09% | 84.55% |
+| MRR | 0.7371 | 0.7780 | 0.7632 | 0.7889 |
+| nDCG@5 | 0.7462 | 0.7924 | 0.7943 | 0.8026 |
 
 ## 结果解读
 
@@ -135,3 +135,27 @@
 - **向量-only**：稠密检索语义泛化强，跨语言 / 同义改写命中率明显高于 BM25。
 - **BM25+向量**：RRF 融合兼顾字面与语义，top-3 / top-5 召回达到最高，验证了混合检索的召回互补。
 - **完整管线（+Reranker）**：对融合候选精排后，top-1、MRR 与 nDCG@5 均达到最优，说明 Reranker 主要提升「首位精度」；top-5 召回相较无 Reranker 略降，是精排以少量召回换取更高精度的典型 trade-off，符合预期。
+
+## 查询增强消融（完整管线 + 查询侧增强）
+
+> 说明：三组均在完整管线（BM25+向量+Reranker）上，区别仅在查询侧是否做 rewrite / HyDE。
+
+### 全量（110 条）
+
+| 指标 | baseline | +查询改写 | +HyDE |
+|---|---|---|---|
+| top-1 命中率 | 74.55% | 80.00% | 74.55% |
+| top-3 命中率 | 82.73% | 85.45% | 81.82% |
+| top-5 命中率 | 84.55% | 88.18% | 85.45% |
+| MRR | 0.7889 | 0.8321 | 0.7870 |
+| nDCG@5 | 0.8026 | 0.8446 | 0.8031 |
+
+### 复杂查询子集（多主题干扰 / 跨语言 / 反向否定，66 条）
+
+| 指标 | baseline | +查询改写 | +HyDE |
+|---|---|---|---|
+| top-1 命中率 | 62.12% | 71.21% | 63.64% |
+| top-3 命中率 | 74.24% | 78.79% | 72.73% |
+| top-5 命中率 | 75.76% | 81.82% | 77.27% |
+| MRR | 0.6831 | 0.7551 | 0.6899 |
+| nDCG@5 | 0.7022 | 0.7710 | 0.7106 |

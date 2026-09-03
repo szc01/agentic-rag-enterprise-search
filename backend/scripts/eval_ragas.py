@@ -129,7 +129,11 @@ async def _generate_answer(llm: ChatOpenAI, question: str, contexts: list[str]) 
 
 
 async def build_samples() -> list[SingleTurnSample]:
-    """对每个事实检索上下文 + 生成答案，组装为 ragas SingleTurnSample。"""
+    """对每个事实检索上下文 + 生成答案，组装为 ragas SingleTurnSample。
+
+    每事实取 2 类难例（加权难例），共 44 条：偶数事实取（同义改写、反向否定），
+    奇数事实取（跨语言、多主题干扰），避免只用基线直配导致 context_precision/recall 饱和。
+    """
     from app.database import AsyncSessionLocal
     from app.services.retriever import HybridRetriever
 
@@ -137,26 +141,25 @@ async def build_samples() -> list[SingleTurnSample]:
     retriever = HybridRetriever(reranker_enabled=True)
     samples: list[SingleTurnSample] = []
 
-    # 5 类难度轮流取用，避免只取基线直配导致 context_precision/recall 恒为 1.0 饱和
-    QUERY_TYPES = ["q_direct", "q_para", "q_cross", "q_distract", "q_neg"]
-
     async with AsyncSessionLocal() as db:
         for i, fact in enumerate(FACTS, 1):
-            question = fact[QUERY_TYPES[(i - 1) % len(QUERY_TYPES)]]
-            emb = await asyncio.to_thread(embedding_service.embed_query, question)
-            results = await retriever.hybrid_search(question, emb, db, top_k=TOP_K)
-            contexts = [(r.content or "") for r in results]
-            if not contexts:
-                log.warning(f"样本 {i}（{question}）未检索到上下文，跳过")
-                continue
-            answer = await _generate_answer(answer_llm, question, contexts)
-            samples.append(SingleTurnSample(
-                user_input=question,
-                retrieved_contexts=contexts,
-                response=answer,
-                reference=fact["statement"],
-            ))
-            log.info(f"样本 {i}/{len(FACTS)} 就绪：{question}")
+            types = ("q_para", "q_neg") if i % 2 == 0 else ("q_cross", "q_distract")
+            for qt in types:
+                question = fact[qt]
+                emb = await asyncio.to_thread(embedding_service.embed_query, question)
+                results = await retriever.hybrid_search(question, emb, db, top_k=TOP_K)
+                contexts = [(r.content or "") for r in results]
+                if not contexts:
+                    log.warning(f"样本（{question}）未检索到上下文，跳过")
+                    continue
+                answer = await _generate_answer(answer_llm, question, contexts)
+                samples.append(SingleTurnSample(
+                    user_input=question,
+                    retrieved_contexts=contexts,
+                    response=answer,
+                    reference=fact["statement"],
+                ))
+                log.info(f"样本 {len(samples)} 就绪：{question}")
 
     return samples
 
@@ -174,7 +177,7 @@ def build_markdown(scores: dict[str, float], n_samples: int) -> str:
     lines = []
     lines.append("# RAGAS 生成质量评测")
     lines.append("")
-    lines.append(f"- 评测样本：{n_samples} 条真实问答（query 在 5 类难度中轮流取用，reference=事实陈述原文）")
+    lines.append(f"- 评测样本：{n_samples} 条真实问答（每事实取 2 类难例，reference=事实陈述原文）")
     lines.append("- 检索上下文：完整管线（BM25 + 向量 + RRF + Reranker，top-5）")
     lines.append("- 答案生成：主 LLM（DeepSeek）；评分：LLM-as-judge（复用 judge 字段）")
     lines.append("")

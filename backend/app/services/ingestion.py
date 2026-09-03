@@ -73,22 +73,30 @@ class IngestionService:
             embeddings = await asyncio.to_thread(self.embedding.embed_texts, texts)
 
             # 3. 写入 chunks 表（含 pgvector 向量）
+            orm_chunks = []
             for chunk, vec in zip(chunks, embeddings):
-                db.add(Chunk(
+                orm = Chunk(
                     document_id=doc.id,
                     chunk_index=chunk.chunk_index,
                     content=chunk.content,
                     embedding=vec,
                     metadata_=chunk.metadata,
                     token_count=chunk.token_count,
-                ))
+                )
+                db.add(orm)
+                orm_chunks.append(orm)
 
             # 4. 回写文档状态
             doc.total_chunks = len(chunks)
             doc.title = doc.title or Path(doc.filename).stem
             doc.status = "ready"
             await db.commit()
-            retriever.invalidate_index()  # 新增 chunks，标记 BM25 索引失效
+
+            # 5. 增量更新 BM25 索引（首次会先全量加载现有 chunks）
+            await retriever.add_chunks(
+                [{"chunk_id": c.id, "content": c.content} for c in orm_chunks],
+                db,
+            )
             logger.info(f"文档 {doc.id} 入库完成，共 {len(chunks)} 个分片")
             return doc
 

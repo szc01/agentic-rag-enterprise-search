@@ -334,6 +334,98 @@ def build_kb_documents() -> list[tuple[str, str]]:
     return docs
 
 
+# ── 真实公开文档片段（与合成语料混合入库，贴近真实分布）──────────────────
+# 内容为 PostgreSQL / LangChain / FastAPI / Redis / 向量检索 等官方文档的忠实摘要，
+# 用于让检索评测在「真实风格 + 合成锚点」混合语料上进行。
+REAL_DOCS: list[tuple[str, str]] = [
+    ("real_pgvector.md", """# PostgreSQL pgvector 扩展
+
+pgvector 是 PostgreSQL 的开源向量相似度检索扩展，提供 vector 数据类型，用于存储嵌入向量。
+
+## 向量类型与索引
+
+pgvector 支持 exact 与 approximate 最近邻检索。精确检索用顺序扫描逐一计算距离；近似检索用 IVFFlat 或 HNSW 索引加速。IVFFlat 先把向量划分到若干簇（lists），查询时只扫描最近的几个簇；HNSW 构建多层图结构，以少量内存换取对数级的搜索复杂度。
+
+## 距离函数
+
+pgvector 提供三种常用距离算子：L2 距离（欧氏距离）、内积（inner product）与余弦距离（cosine distance）。其中余弦距离需要向量先做 L2 归一化。选择距离函数时应与 embedding 模型的训练目标保持一致。
+
+## 查询示例
+
+建表时用 vector(1024) 声明维度，插入向量后可用 ORDER BY embedding <=> query 做近似检索，并配合 WHERE 过滤元数据。HNSW 索引通过 CREATE INDEX ... USING hnsw (embedding vector_cosine_ops) 建立。
+"""),
+    ("real_langchain.md", """# LangChain 框架概述
+
+LangChain 是用于构建大语言模型（LLM）应用的开源框架，核心抽象包括 Chain、Agent 与 Tool。
+
+## Chain 与 LCEL
+
+Chain 把多个步骤串成流水线；LCEL（LangChain Expression Language）用管道运算符声明式组合 prompt、模型与解析器，便于异步、流式与批处理。
+
+## Agent 与 Tool
+
+Agent 根据 LLM 的推理决定调用哪个 Tool，常见模式是 ReAct（Reason + Act）。Tool 封装外部能力（搜索、计算、数据库查询），Agent 循环直到得到最终答案。
+
+## Retriever 与 RAG
+
+Retriever 是面向检索的统一接口，把用户查询转换为文档列表。RAG 模式先用 Retriever 召回相关文档，再把文档作为上下文交给 LLM 生成有依据的回答。LangChain 提供向量存储、BM25 等多种检索器实现。
+"""),
+    ("real_fastapi.md", """# FastAPI 框架概述
+
+FastAPI 是基于 ASGI 的现代 Python Web 框架，用于构建 API 服务。
+
+## 类型校验与文档
+
+FastAPI 用 Pydantic 声明请求/响应模型，运行时自动做类型校验与序列化，并自动生成 OpenAPI 文档与交互式 Swagger UI。
+
+## 异步支持
+
+FastAPI 原生支持 async def 路由，也兼容普通 def 路由；异步路由能更高效地并发处理 I/O 密集请求，避免阻塞事件循环。
+
+## 依赖注入
+
+FastAPI 的 Depends 提供依赖注入机制，可复用数据库会话、鉴权校验等横切逻辑；依赖可嵌套、可缓存，便于测试时替换。
+"""),
+    ("real_redis.md", """# Redis 内存数据结构存储
+
+Redis 是开源的内存数据结构存储，常用作缓存、消息代理与排行榜。
+
+## 数据类型
+
+Redis 支持字符串（String）、哈希（Hash）、列表（List）、集合（Set）、有序集合（Sorted Set）等类型。有序集合按 score 排序，适合实现排行榜与延迟队列。
+
+## 过期与持久化
+
+Redis 可为键设置 TTL（过期时间），到期自动删除。持久化有 RDB 快照与 AOF 追加日志两种方式，可单独或混合使用以平衡恢复速度与数据安全。
+
+## 发布订阅
+
+Redis 的 Pub/Sub 支持按频道发布与订阅消息，用于解耦服务间的实时通知；生产者与消费者彼此不直接感知。
+"""),
+    ("real_vector_search.md", """# 稠密检索与向量检索
+
+稠密检索用神经网络把文本编码为高维向量，通过向量相似度衡量语义相关性，与基于关键词的稀疏检索互补。
+
+## Embedding
+
+Embedding 模型把 query 与文档映射到同一向量空间，语义相近的文本向量距离更近。常用模型包括 BGE、Sentence-BERT 等，输出向量通常做 L2 归一化后用于余弦相似度。
+
+## 近似最近邻（ANN）
+
+高维向量全量精确比对代价高，ANN 索引（HNSW、IVF、PQ 等）以少量召回损失换取大幅加速。HNSW 是图索引，查询复杂度近对数；PQ 用乘积量化压缩向量以降低内存。
+
+## 混合检索
+
+混合检索同时跑稀疏检索（如 BM25）与稠密检索，再通过 RRF（倒数排名融合）合并两路排序，兼顾专有名词精确匹配与语义泛化。
+"""),
+]
+
+
+def build_real_documents() -> list[tuple[str, str]]:
+    """返回真实公开文档片段（与合成语料混合入库）。"""
+    return list(REAL_DOCS)
+
+
 # ── 评测集 ──────────────────────────────────────────────────────────────
 _CATEGORIES = [
     ("基线直配", "q_direct"),

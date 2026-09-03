@@ -41,15 +41,43 @@ class TestHybridRetriever:
             ]
             await self.retriever.ensure_index(AsyncMock())
             assert self.retriever._index_built is True
-            assert self.retriever._index_dirty is False
+            assert len(self.retriever._chunk_ids) == 2
 
-    def test_invalidate_index_sets_dirty(self):
-        """文档增删后应标记索引失效"""
-        self.retriever._index_built = True
-        self.retriever._index_dirty = False
-        self.retriever.invalidate_index()
-        assert self.retriever._index_dirty is True
-        assert self.retriever._index_built is False
+    @pytest.mark.asyncio
+    async def test_add_remove_chunks_matches_full_rebuild(self):
+        """增量增删后 BM25 检索结果应与「全量重建」一致"""
+        chunks = [
+            {"chunk_id": 1, "content": "RAG 是检索增强生成技术"},
+            {"chunk_id": 2, "content": "向量数据库存储嵌入向量"},
+            {"chunk_id": 3, "content": "LangChain 是 LLM 应用开发框架"},
+        ]
+        # 增量路径：先建 2 个 → 增 1 个 → 删 1 个
+        inc = HybridRetriever(top_k=5)
+        inc.build_bm25_index(chunks[:2])
+        await inc.add_chunks([chunks[2]], db=None)
+        await inc.remove_chunks([1], db=None)
+
+        # 全量重建等价的最终索引 = {chunk 2, chunk 3}
+        full = HybridRetriever(top_k=5)
+        full.build_bm25_index([chunks[1], chunks[2]])
+
+        for query in ("RAG 检索", "向量 数据库", "LangChain 框架"):
+            assert inc._bm25_search(query, 10) == full._bm25_search(query, 10)
+
+    @pytest.mark.asyncio
+    async def test_add_remove_chunks_idempotent(self):
+        """重复增删（幂等）不应破坏索引"""
+        chunks = [
+            {"chunk_id": 1, "content": "RAG 是检索增强生成技术"},
+            {"chunk_id": 2, "content": "向量数据库存储嵌入向量"},
+            {"chunk_id": 3, "content": "LangChain 是 LLM 应用开发框架"},
+        ]
+        self.retriever.build_bm25_index(chunks)
+        await self.retriever.add_chunks([chunks[0]], db=None)  # 已存在，跳过
+        await self.retriever.remove_chunks([999], db=None)      # 不存在，跳过
+        assert len(self.retriever._chunk_ids) == 3
+        # "LangChain" 只在 chunk 3 出现，应命中 chunk 3
+        assert self.retriever._bm25_search("LangChain", 10)[0][0] == 3
 
     @pytest.mark.asyncio
     async def test_hybrid_search_flow(self):
@@ -108,6 +136,25 @@ class TestHybridRetriever:
         tokens = self.retriever._tokenize_char_window("检索增强")
         assert "检索" in tokens
         assert "索增" in tokens
+
+    def test_resolve_enhance(self):
+        """enhance 参数解析：none/rewrite/hyde/auto"""
+        assert self.retriever._resolve_enhance("none") == (False, False)
+        assert self.retriever._resolve_enhance("rewrite") == (True, False)
+        assert self.retriever._resolve_enhance("hyde") == (False, True)
+        # auto 读配置（默认关闭）
+        assert self.retriever._resolve_enhance("auto") == (False, False)
+
+    def test_rrf_merge_results_ranks_chunk_in_multiple_lists_first(self):
+        """多查询 RRF 合并：同时出现在多个列表的结果应排最前，分数归一化到 0-1"""
+        r1 = RetrievalResult(chunk_id=1, content="a")
+        r2 = RetrievalResult(chunk_id=2, content="b")
+        r3 = RetrievalResult(chunk_id=3, content="c")
+        merged = self.retriever._rrf_merge_results([[r2, r3], [r1, r2]], top_k=3)
+        ids = [r.chunk_id for r in merged]
+        assert ids[0] == 2
+        assert len(ids) == 3
+        assert all(0.0 <= r.final_score <= 1.0 for r in merged)
 
     @pytest.mark.asyncio
     async def test_hybrid_search_mode_bm25_skips_vector(self):

@@ -7,9 +7,9 @@
 ## 核心亮点
 
 - **多智能体 Agentic RAG**：LangGraph 编排 Planner → Retrieval → Critic → Synthesizer，信息不足自动补查、防死循环。
-- **混合检索 + 精排**：BM25 + pgvector 向量 + RRF 融合 + BGE-Reranker，兼顾关键词精确匹配与语义召回。
-- **可量化评测**：110 条评测集 × 385 分片知识库四组消融——完整管线 top-1 76.36%、MRR 0.8026、nDCG@5 0.8150；RAGAS 生成质量 faithfulness 0.75。
-- **工程闭环**：文档入库 → 多轮问答 → 调研报告（MD/PDF）→ 反馈看板；pytest 62 用例全绿。
+- **混合检索 + 查询增强**：BM25 + pgvector + RRF + BGE-Reranker；支持 LLM 查询改写 / HyDE，复杂查询 top-1 提升 9.09 个百分点。
+- **可量化评测**：110 条评测集 × 402 分片知识库（合成 + 真实语料）四组消融——完整管线 top-1 74.55%、MRR 0.7889、nDCG@5 0.8026；RAGAS faithfulness 0.69。
+- **工程闭环**：文档入库 → 多轮问答 → 调研报告（MD/PDF）→ 反馈看板；pytest 65 用例全绿，含检索性能基准与 BM25 增量索引。
 
 ---
 
@@ -98,7 +98,8 @@ flowchart TB
 | Web 框架 | FastAPI · Uvicorn · SSE（sse-starlette） |
 | Agent 编排 | LangGraph · LangChain · langchain-openai |
 | LLM | DeepSeek Chat（可替换任意 OpenAI 兼容 API） |
-| 向量 / 检索 | PostgreSQL + pgvector · rank-bm25 · jieba（中文分词）· sentence-transformers（BGE） |
+| 向量 / 检索 | PostgreSQL + pgvector · rank-bm25（Okapi BM25 倒排索引）· jieba（中文分词）· sentence-transformers（BGE） |
+| 查询增强 | LLM 查询改写（rewrite）· HyDE 假设文档向量（默认关，可开关） |
 | 会话持久化 | LangGraph checkpointer（内存默认，可切 Postgres） |
 | 存储 | PostgreSQL（pgvector 镜像）· Redis |
 | 文档解析 | pdfplumber · python-docx · BeautifulSoup · html2text |
@@ -118,7 +119,8 @@ agentic-rag-system/
 │   │   ├── services/
 │   │   │   ├── agents/       # planner / retrieval / critic / synthesizer / types
 │   │   │   ├── ingestion.py  # 解析→分片→向量化→入库
-│   │   │   ├── retriever.py  # 混合检索 + Reranker
+│   │   │   ├── retriever.py  # 混合检索 + Reranker（增量 BM25 索引）
+│   │   │   ├── query_enhance.py  # 查询改写 + HyDE
 │   │   │   ├── chunker.py    # 多策略智能分片
 │   │   │   ├── embedding.py  # BGE 向量化
 │   │   │   └── parser.py     # 文档解析
@@ -128,10 +130,11 @@ agentic-rag-system/
 │   │   ├── config.py         # 配置（.env / 环境变量）
 │   │   └── database.py       # 异步引擎 / 会话 / 建表建索引
 │   ├── scripts/
-│   │   ├── eval_data.py      # 合成企业知识库 + 110 条评测集（统一数据源）
-│   │   ├── eval_retrieval.py # 检索评测：四组消融对比（BM25/向量/融合/Reranker）
+│   │   ├── eval_data.py      # 合成 + 真实语料知识库 + 110 条评测集（统一数据源）
+│   │   ├── eval_retrieval.py # 检索评测：四组消融 + 查询增强消融
 │   │   ├── eval_tokenizer.py # 中文分词对比（jieba vs 字符滑动窗口）
-│   │   └── eval_ragas.py     # RAGAS 生成质量评测（faithfulness 等四指标）
+│   │   ├── eval_ragas.py     # RAGAS 生成质量评测（faithfulness 等四指标）
+│   │   └── benchmark_latency.py  # 检索延迟 / 吞吐 / 分阶段耗时 / 索引维护基准
 │   ├── static/               # 前端 SPA
 │   ├── tests/                # pytest 单测
 │   └── output/               # 评测结果（eval_result.md / tokenizer_compare.md / ragas_result.md）
@@ -214,7 +217,7 @@ python -m uvicorn app:app --port 8000
 
 ---
 
-## 7. Day 1-7 功能清单
+## 7. Day 1-8 功能清单
 
 | 阶段 | 交付内容 |
 |---|---|
@@ -225,6 +228,7 @@ python -m uvicorn app:app --port 8000
 | **Day 5** | Agent 流程可视化（前端四节点流程图实时高亮） |
 | **Day 6** | 检索评测集加难例 + nDCG@5、报告 PDF 导出（Chrome headless）、README / 部署文档、多轮对话（chat history） |
 | **Day 7** | 评测集 + 知识库扩量（300-500 chunks / 100+ 条）、四组消融实验、BM25 中文分词升级（jieba + 停用词）、RAGAS 生成质量评测、LangGraph checkpointer 会话持久化 |
+| **Day 8** | 查询增强（查询改写 + HyDE）、检索性能基准（延迟/吞吐/阶段耗时）、BM25 索引增量更新、真实公开语料混合 + RAGAS 样本扩到 40+ |
 
 ---
 

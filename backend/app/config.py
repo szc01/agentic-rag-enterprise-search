@@ -58,6 +58,10 @@ class Settings(BaseSettings):
     reranker_model: str = "BAAI/bge-reranker-base"
     reranker_enabled: bool = True  # 检索对比实验需要能一键关闭
 
+    # === 查询增强（默认关，不影响既有行为）===
+    query_rewrite_enabled: bool = False  # LLM 查询改写（多查询召回合并）
+    hyde_enabled: bool = False  # HyDE 假设文档向量
+
     # === JWT（开发期占位符，生产前必须改）===
     jwt_secret: str = "dev-placeholder-secret-change-before-production"
     jwt_algorithm: str = "HS256"

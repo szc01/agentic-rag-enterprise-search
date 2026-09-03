@@ -7,6 +7,7 @@ import aiofiles
 
 from app.database import get_db
 from app.models.document import Document
+from app.models.chunk import Chunk
 from app.schemas.document import DocumentUploadResponse, DocumentDetail, DocumentListResponse
 from app.config import settings
 from app.services.ingestion import ingestion_service
@@ -168,11 +169,16 @@ async def delete_document(doc_id: int, db: AsyncSession = Depends(get_db)):
     if not doc:
         raise HTTPException(status_code=404, detail=f"文档 {doc_id} 不存在")
 
+    # 删除前取出全部 chunk id，供 BM25 索引增量删除
+    chunk_ids = [r[0] for r in (await db.execute(
+        select(Chunk.id).where(Chunk.document_id == doc_id)
+    )).all()]
+
     # 删除物理文件
     if os.path.exists(doc.file_path):
         os.remove(doc.file_path)
 
     await db.delete(doc)
     await db.commit()
-    retriever.invalidate_index()  # chunks 级联删除，标记 BM25 索引失效
+    await retriever.remove_chunks(chunk_ids, db)  # chunks 级联删除后增量移除
     return {"message": f"文档 '{doc.filename}' 已删除"}

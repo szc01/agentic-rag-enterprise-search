@@ -56,8 +56,9 @@ class HybridRetriever:
       3. RRF 融合 → 融合两路排序
       4. （可选）BGE-Reranker 重排 → 对粗排 top-N 候选精排
 
-    BM25 索引为内存结构：首次检索或数据变更后（ingestion/delete 触发 invalidate）
-    从 PostgreSQL 全量加载 chunks 重建。TODO: 未来做真正的增量更新。
+    BM25 索引为内存倒排结构（term -> {chunk_id: tf} + term -> doc_freq），首次检索时
+    从 PostgreSQL 全量加载构建；之后文档入库/删除通过 add_chunks / remove_chunks 增量维护，
+    不再全量重建。
     """
 
     def __init__(
@@ -82,57 +83,156 @@ class HybridRetriever:
         # Reranker 重排的候选集大小（先粗排取 top-N，再精排）
         self.rerank_candidates = rerank_candidates
 
-        # BM25 索引（内存字典，开发阶段；生产接 PostgreSQL tsvector）
-        self._bm25_model = None
-        self._bm25_chunk_ids: list[int] = []
+        # 查询增强开关（默认读配置；eval 时通过 hybrid_search(enhance=...) 覆盖）
+        self.query_rewrite_enabled = settings.query_rewrite_enabled
+        self.hyde_enabled = settings.hyde_enabled
+
+        # BM25 倒排索引（自定义内存结构，支持增量增删；见 _add_chunk / _remove_chunk）
+        self._postings: dict[str, dict[int, int]] = {}      # term -> {chunk_id: tf}
+        self._chunk_freqs: dict[int, dict[str, int]] = {}   # chunk_id -> {term: tf}（删除反查）
+        self._doc_lengths: dict[int, int] = {}              # chunk_id -> token 数
+        self._doc_freq: dict[str, int] = {}                 # term -> 含该词的 chunk 数
+        self._chunk_ids: set[int] = set()
+        self._total_tokens: int = 0
+        self._idf: dict[str, float] = {}
+        self._idf_dirty: bool = False
         self._index_built = False
-        self._index_dirty = False   # 数据变更后置位，下次检索时重建
 
         # Reranker（lazy load）
         self._reranker = None
 
     # ── 索引管理 ──────────────────────────────
+    # Okapi BM25 参数（与 rank_bm25.BM25Okapi 默认值一致，保证打分公式不变）
+    BM25_K1 = 1.5
+    BM25_B = 0.75
+    BM25_EPSILON = 0.25
 
     def build_bm25_index(self, chunks: list[dict]):
-        """
-        从 chunks 列表构建 BM25 倒排索引。
-
-        Args:
-            chunks: [{"chunk_id": int, "content": str, ...}, ...]
-        """
-        from rank_bm25 import BM25Okapi
-
-        corpus = []
-        chunk_ids = []
+        """从 chunks 列表全量构建 BM25 倒排索引（首次加载 / 全量重建）。"""
+        self._reset_index()
         for ch in chunks:
-            tokens = self._tokenize(ch["content"])
-            corpus.append(tokens)
-            chunk_ids.append(ch["chunk_id"])
-
-        if not corpus:
-            self._bm25_model = None
-            self._bm25_chunk_ids = []
-            self._index_built = False
-            return
-
-        self._bm25_model = BM25Okapi(corpus)
-        self._bm25_chunk_ids = chunk_ids
+            self._add_chunk(ch["chunk_id"], self._tokenize(ch["content"]))
         self._index_built = True
-        logger.info(f"BM25 索引构建完成，共 {len(corpus)} 个分片")
+        self._idf_dirty = True
+        logger.info(f"BM25 索引构建完成，共 {len(self._chunk_ids)} 个分片")
 
     async def ensure_index(self, db):
-        """确保 BM25 索引已构建：首次或数据变更后从 PG 全量加载重建。"""
-        if self._index_built and not self._index_dirty:
+        """确保 BM25 索引已构建：首次从 PG 全量加载；之后由增量方法维护。"""
+        if self._index_built:
             return
         chunks = await self._load_chunks_from_db(db)
         self.build_bm25_index(chunks)
-        self._index_dirty = False
 
-    def invalidate_index(self):
-        """文档新增/删除后调用，标记索引失效，下次检索时重建。"""
-        self._index_dirty = True
+    async def add_chunks(self, chunks: list[dict], db) -> None:
+        """增量新增 chunks（若索引尚未构建，先全量加载现有 chunk，避免残缺索引）。"""
+        await self.ensure_index(db)
+        changed = False
+        for ch in chunks:
+            changed |= self._add_chunk(ch["chunk_id"], self._tokenize(ch["content"]))
+        self._index_built = True
+        if changed:
+            self._idf_dirty = True
+
+    async def remove_chunks(self, chunk_ids: list[int], db) -> None:
+        """增量删除 chunks（幂等：不存在的 chunk_id 直接跳过）。"""
+        await self.ensure_index(db)
+        changed = False
+        for cid in chunk_ids:
+            changed |= self._remove_chunk(cid)
+        if changed:
+            self._idf_dirty = True
+
+    def _reset_index(self) -> None:
+        self._postings = {}
+        self._chunk_freqs = {}
+        self._doc_lengths = {}
+        self._doc_freq = {}
+        self._chunk_ids = set()
+        self._total_tokens = 0
+        self._idf = {}
+        self._idf_dirty = True
         self._index_built = False
-        logger.info("BM25 索引已失效，将在下次检索时重建")
+
+    def _add_chunk(self, chunk_id: int, tokens: list[str]) -> bool:
+        """往倒排索引插入一个 chunk；已存在则跳过（幂等），返回是否发生变化。"""
+        if chunk_id in self._chunk_ids:
+            return False
+        freqs: dict[str, int] = {}
+        for t in tokens:
+            freqs[t] = freqs.get(t, 0) + 1
+        self._chunk_freqs[chunk_id] = freqs
+        self._doc_lengths[chunk_id] = len(tokens)
+        self._total_tokens += len(tokens)
+        self._chunk_ids.add(chunk_id)
+        for t, tf in freqs.items():
+            self._postings.setdefault(t, {})[chunk_id] = tf
+            self._doc_freq[t] = self._doc_freq.get(t, 0) + 1
+        return True
+
+    def _remove_chunk(self, chunk_id: int) -> bool:
+        """从倒排索引删除一个 chunk；不存在则跳过（幂等），返回是否发生变化。"""
+        freqs = self._chunk_freqs.pop(chunk_id, None)
+        if freqs is None:
+            return False
+        self._chunk_ids.discard(chunk_id)
+        self._total_tokens -= self._doc_lengths.pop(chunk_id, 0)
+        for t, tf in freqs.items():
+            post = self._postings.get(t)
+            if post is not None:
+                post.pop(chunk_id, None)
+                if not post:
+                    self._postings.pop(t, None)
+            new_df = self._doc_freq.get(t, 0) - 1
+            if new_df <= 0:
+                self._doc_freq.pop(t, None)
+            else:
+                self._doc_freq[t] = new_df
+        return True
+
+    def _ensure_idf(self) -> None:
+        """从 doc_freq 重算 idf（增量增删后置 dirty，懒计算）。"""
+        if not self._idf_dirty:
+            return
+        self._idf = {}
+        n = len(self._chunk_ids)
+        if n == 0:
+            self._idf_dirty = False
+            return
+
+        idf_sum = 0.0
+        negative: list[str] = []
+        for t, df in self._doc_freq.items():
+            idf = math.log(n - df + 0.5) - math.log(df + 0.5)
+            self._idf[t] = idf
+            idf_sum += idf
+            if idf < 0:
+                negative.append(t)
+        if self._idf:
+            eps = self.BM25_EPSILON * (idf_sum / len(self._idf))
+            for t in negative:
+                self._idf[t] = eps
+        self._idf_dirty = False
+
+    def _bm25_score(self, query_tokens: list[str], chunk_id: int) -> float:
+        """Okapi BM25 打分（k1=1.5, b=0.75），与 rank_bm25.BM25Okapi 一致。"""
+        dl = self._doc_lengths.get(chunk_id, 0)
+        n = len(self._chunk_ids)
+        if dl == 0 or n == 0:
+            return 0.0
+        avgdl = self._total_tokens / n
+        if avgdl <= 0:
+            return 0.0
+
+        score = 0.0
+        for t in query_tokens:
+            tf = self._postings.get(t, {}).get(chunk_id, 0)
+            if tf == 0:
+                continue
+            idf = self._idf.get(t, 0.0)
+            num = idf * tf * (self.BM25_K1 + 1)
+            den = tf + self.BM25_K1 * (1 - self.BM25_B + self.BM25_B * dl / avgdl)
+            score += num / den
+        return score
 
     async def _load_chunks_from_db(self, db) -> list[dict]:
         """从数据库加载全部 chunk（id + content）用于构建 BM25。"""
@@ -187,6 +287,7 @@ class HybridRetriever:
         db,  # AsyncSession
         top_k: int | None = None,
         mode: str = "hybrid",
+        enhance: str = "auto",
     ) -> list[RetrievalResult]:
         """
         执行检索，返回排序后的结果列表。
@@ -200,11 +301,23 @@ class HybridRetriever:
                   "hybrid"（默认）= BM25 + 向量 + RRF；
                   "bm25" = 仅 BM25 稀疏检索；
                   "vector" = 仅向量稠密检索。
+            enhance: 查询增强开关。
+                  "auto"（默认）= 读 config 的 query_rewrite_enabled / hyde_enabled；
+                  "none" = 不增强；"rewrite" = 查询改写；"hyde" = HyDE。
 
         Returns:
             排序后的 RetrievalResult 列表（已回填 content/document_title/metadata）
         """
         k = top_k or self.top_k
+
+        # 查询增强（rewrite / hyde）：在进入单次检索前按开关分派
+        use_rewrite, use_hyde = self._resolve_enhance(enhance)
+        if use_rewrite:
+            return await self._search_with_rewrite(query, query_embedding, db, k, mode)
+        if use_hyde:
+            hypo_emb = await self._hyde_embedding(query)
+            if hypo_emb:
+                query_embedding = hypo_emb  # BM25 一路仍用原始 query 文本
 
         # 候选集大小：启用 Reranker 时先粗排取更多候选（默认 20）再精排
         candidate_k = max(k, self.rerank_candidates) if self.reranker_enabled else k
@@ -246,14 +359,110 @@ class HybridRetriever:
 
         return results[:k]
 
-    def _bm25_search(self, query: str, top_k: int) -> list[tuple[int, float]]:
-        """BM25 检索"""
-        if not self._index_built or self._bm25_model is None:
+    def _resolve_enhance(self, enhance: str) -> tuple[bool, bool]:
+        """把 enhance 参数解析为 (use_rewrite, use_hyde)。"""
+        if enhance == "none":
+            return False, False
+        if enhance == "rewrite":
+            return True, False
+        if enhance == "hyde":
+            return False, True
+        # "auto"：读配置开关
+        return self.query_rewrite_enabled, self.hyde_enabled
+
+    async def _search_with_rewrite(
+        self,
+        query: str,
+        query_embedding: list[float],
+        db,
+        k: int,
+        mode: str,
+    ) -> list[RetrievalResult]:
+        """查询改写：原始 query + LLM 改写变体分别召回（无精排），RRF 合并候选后统一精排。
+
+        设计：每个变体先做「BM25+向量+RRF」粗召回取候选（candidate_k），合并去重后
+        只对合并候选做一次 Reranker 精排——既避免对每个变体重复精排，又让精排在更大的
+        合并候选集上工作（两段式召回→精排）。
+        """
+        from app.services.query_enhance import query_enhancer
+        from app.services.embedding import embedding_service
+
+        variants = await query_enhancer.rewrite(query)
+        candidate_k = max(k, self.rerank_candidates) if self.reranker_enabled else k
+
+        result_lists: list[list[RetrievalResult]] = []
+        saved = self.reranker_enabled
+        self.reranker_enabled = False  # 子查询召回不做精排
+        try:
+            result_lists.append(await self.hybrid_search(
+                query, query_embedding, db, top_k=candidate_k, mode=mode, enhance="none"
+            ))
+            for q in variants:
+                emb = await asyncio.to_thread(embedding_service.embed_query, q)
+                result_lists.append(await self.hybrid_search(
+                    q, emb, db, top_k=candidate_k, mode=mode, enhance="none"
+                ))
+        finally:
+            self.reranker_enabled = saved
+
+        merged = self._rrf_merge_results(result_lists, candidate_k)
+        if self.reranker_enabled and len(merged) > k:
+            merged = await self._rerank_results(query, merged)
+        return merged[:k]
+
+    def _rrf_merge_results(
+        self,
+        result_lists: list[list[RetrievalResult]],
+        top_k: int,
+    ) -> list[RetrievalResult]:
+        """对多个查询各自的排序结果做 RRF 合并（按排名倒数加和）。"""
+        rrf: dict[int, float] = {}
+        best: dict[int, RetrievalResult] = {}
+        for results in result_lists:
+            for rank, r in enumerate(results):
+                rrf[r.chunk_id] = rrf.get(r.chunk_id, 0.0) + 1.0 / (RRF_K + rank + 1)
+                best.setdefault(r.chunk_id, r)
+
+        n_lists = sum(1 for r in result_lists if r)
+        if not rrf or n_lists == 0:
             return []
+
+        ranked_ids = sorted(rrf, key=lambda cid: rrf[cid], reverse=True)[:top_k]
+        max_score = n_lists / (RRF_K + 1)
+        merged = []
+        for cid in ranked_ids:
+            r = best[cid]
+            r.final_score = round(rrf[cid] / max_score, 4)
+            merged.append(r)
+        return merged
+
+    async def _hyde_embedding(self, query: str) -> list[float] | None:
+        """HyDE：生成假设回答文档并向量化；失败返回 None（回退原始 query 向量）。"""
+        from app.services.query_enhance import query_enhancer
+        from app.services.embedding import embedding_service
+
+        hypo = await query_enhancer.hyde(query)
+        if not hypo:
+            return None
+        return await asyncio.to_thread(embedding_service.embed_query, hypo)
+
+    def _bm25_search(self, query: str, top_k: int) -> list[tuple[int, float]]:
+        """BM25 检索：只对含查询词的候选 chunk 打分（倒排索引剪枝）。"""
+        if not self._index_built:
+            return []
+        self._ensure_idf()
         tokens = self._tokenize(query)
-        scores = self._bm25_model.get_scores(tokens)
-        indexed = sorted(enumerate(scores), key=lambda x: x[1], reverse=True)[:top_k]
-        return [(self._bm25_chunk_ids[i], float(s)) for i, s in indexed if s > 0]
+
+        candidates: set[int] = set()
+        for t in tokens:
+            post = self._postings.get(t)
+            if post:
+                candidates.update(post.keys())
+
+        scored = [(cid, self._bm25_score(tokens, cid)) for cid in candidates]
+        scored = [(cid, s) for cid, s in scored if s > 0]
+        scored.sort(key=lambda x: (-x[1], x[0]))  # 分数降序，同分按 chunk_id 升序（与旧实现一致）
+        return [(cid, float(s)) for cid, s in scored[:top_k]]
 
     async def _vector_search(
         self,
