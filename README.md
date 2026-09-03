@@ -64,10 +64,10 @@ flowchart TB
     end
 
     subgraph API[FastAPI API 层]
-        DOC[/api/documents]
-        SEA[/api/search]
-        REP[/api/reports]
-        DASH[/api/dashboard]
+        DOC["/api/documents"]
+        SEA["/api/search"]
+        REP["/api/reports"]
+        DASH["/api/dashboard"]
     end
 
     subgraph Core[Agentic RAG 核心]
@@ -86,7 +86,7 @@ flowchart TB
     GRAPH --> RET
     RET --> EMB
     RET --> PG
-    RET -.BM25 索引缓存.-> RD
+    RET -. "BM25 索引缓存" .-> RD
 ```
 
 ---
