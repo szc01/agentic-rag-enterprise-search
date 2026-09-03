@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="620" viewBox="0 0 920 620" font-family="Microsoft YaHei, PingFang SC, sans-serif">
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#5b6b8c"/>
+    </marker>
+    <linearGradient id="lane1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#eef4ff"/><stop offset="1" stop-color="#dfe9fb"/></linearGradient>
+    <linearGradient id="lane2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3eeff"/><stop offset="1" stop-color="#e7dcfb"/></linearGradient>
+    <linearGradient id="lane3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#eefaf2"/><stop offset="1" stop-color="#ddf0e4"/></linearGradient>
+  </defs>
+  <rect x="0" y="0" width="920" height="620" fill="#ffffff"/>
+  <text x="460" y="32" font-size="16" font-weight="bold" text-anchor="middle" fill="#1f3a5f">系统核心业务流程</text>
+
+  <!-- 泳道标题 -->
+  <rect x="20" y="50" width="200" height="40" rx="8" fill="#3b6fb5"/>
+  <text x="120" y="75" font-size="13" font-weight="bold" text-anchor="middle" fill="#ffffff">文档入库</text>
+  <rect x="360" y="50" width="200" height="40" rx="8" fill="#5a3b9b"/>
+  <text x="460" y="75" font-size="13" font-weight="bold" text-anchor="middle" fill="#ffffff">智能问答</text>
+  <rect x="700" y="50" width="200" height="40" rx="8" fill="#2f9e6b"/>
+  <text x="800" y="75" font-size="13" font-weight="bold" text-anchor="middle" fill="#ffffff">自动调研</text>
+
+  <!-- 泳道背景 -->
+  <rect x="20" y="100" width="280" height="500" rx="10" fill="url(#lane1)" stroke="#b7cbe8"/>
+  <rect x="320" y="100" width="280" height="500" rx="10" fill="url(#lane2)" stroke="#cdbdee"/>
+  <rect x="620" y="100" width="280" height="500" rx="10" fill="url(#lane3)" stroke="#bcd9c4"/>
+
+  <!-- 泳道1：文档入库 -->
+  <g font-size="12">
+    <ellipse cx="160" cy="140" rx="52" ry="20" fill="#ffffff" stroke="#3b6fb5"/>
+    <text x="160" y="145" text-anchor="middle" fill="#1f3a5f">开始</text>
+    <rect x="90" y="180" width="140" height="40" rx="8" fill="#ffffff" stroke="#3b6fb5"/>
+    <text x="160" y="205" text-anchor="middle" fill="#1f3a5f">上传文档</text>
+    <rect x="90" y="250" width="140" height="40" rx="8" fill="#ffffff" stroke="#3b6fb5"/>
+    <text x="160" y="275" text-anchor="middle" fill="#1f3a5f">解析内容</text>
+    <rect x="90" y="320" width="140" height="40" rx="8" fill="#ffffff" stroke="#3b6fb5"/>
+    <text x="160" y="345" text-anchor="middle" fill="#1f3a5f">智能分片</text>
+    <rect x="90" y="390" width="140" height="40" rx="8" fill="#ffffff" stroke="#3b6fb5"/>
+    <text x="160" y="415" text-anchor="middle" fill="#1f3a5f">向量化</text>
+    <rect x="90" y="460" width="140" height="40" rx="8" fill="#ffffff" stroke="#3b6fb5"/>
+    <text x="160" y="485" text-anchor="middle" fill="#1f3a5f">写入 pgvector</text>
+    <ellipse cx="160" cy="545" rx="52" ry="20" fill="#ffffff" stroke="#3b6fb5"/>
+    <text x="160" y="550" text-anchor="middle" fill="#1f3a5f">结束</text>
+  </g>
+  <g stroke="#5b6b8c" stroke-width="1.5" marker-end="url(#ar)">
+    <line x1="160" y1="160" x2="160" y2="180"/><line x1="160" y1="220" x2="160" y2="250"/>
+    <line x1="160" y1="290" x2="160" y2="320"/><line x1="160" y1="360" x2="160" y2="390"/>
+    <line x1="160" y1="430" x2="160" y2="460"/><line x1="160" y1="500" x2="160" y2="545"/>
+  </g>
+
+  <!-- 泳道2：智能问答 -->
+  <g font-size="12">
+    <ellipse cx="460" cy="140" rx="52" ry="20" fill="#ffffff" stroke="#5a3b9b"/>
+    <text x="460" y="145" text-anchor="middle" fill="#1f3a5f">开始</text>
+    <rect x="390" y="180" width="140" height="40" rx="8" fill="#ffffff" stroke="#5a3b9b"/>
+    <text x="460" y="205" text-anchor="middle" fill="#1f3a5f">用户提问</text>
+    <rect x="390" y="250" width="140" height="40" rx="8" fill="#ffffff" stroke="#5a3b9b"/>
+    <text x="460" y="270" text-anchor="middle" fill="#1f3a5f">Planner</text>
+    <text x="460" y="284" text-anchor="middle" font-size="10" fill="#6b5a94">问题分解</text>
+    <rect x="390" y="320" width="140" height="40" rx="8" fill="#ffffff" stroke="#5a3b9b"/>
+    <text x="460" y="340" text-anchor="middle" fill="#1f3a5f">Retrieval</text>
+    <text x="460" y="354" text-anchor="middle" font-size="10" fill="#6b5a94">混合检索</text>
+    <rect x="390" y="390" width="140" height="40" rx="8" fill="#ffffff" stroke="#5a3b9b"/>
+    <text x="460" y="415" text-anchor="middle" fill="#1f3a5f">Critic 审查</text>
+    <path d="M530 410 L585 410 L585 340 L532 340" fill="none" stroke="#c0563b" stroke-width="1.5" marker-end="url(#ar)"/>
+    <text x="600" y="378" font-size="10" fill="#c0563b" text-anchor="middle">不充分补查</text>
+    <rect x="390" y="460" width="140" height="40" rx="8" fill="#ffffff" stroke="#5a3b9b"/>
+    <text x="460" y="480" text-anchor="middle" fill="#1f3a5f">Synthesizer</text>
+    <text x="460" y="494" text-anchor="middle" font-size="10" fill="#6b5a94">带引用生成</text>
+    <ellipse cx="460" cy="545" rx="52" ry="20" fill="#ffffff" stroke="#5a3b9b"/>
+    <text x="460" y="550" text-anchor="middle" fill="#1f3a5f">结束</text>
+  </g>
+  <g stroke="#5b6b8c" stroke-width="1.5" marker-end="url(#ar)">
+    <line x1="460" y1="160" x2="460" y2="180"/><line x1="460" y1="220" x2="460" y2="250"/>
+    <line x1="460" y1="290" x2="460" y2="320"/><line x1="460" y1="360" x2="460" y2="390"/>
+    <line x1="460" y1="430" x2="460" y2="460"/><line x1="460" y1="500" x2="460" y2="545"/>
+  </g>
+
+  <!-- 泳道3：自动调研 -->
+  <g font-size="12">
+    <ellipse cx="760" cy="140" rx="52" ry="20" fill="#ffffff" stroke="#2f9e6b"/>
+    <text x="760" y="145" text-anchor="middle" fill="#1f3a5f">开始</text>
+    <rect x="690" y="180" width="140" height="40" rx="8" fill="#ffffff" stroke="#2f9e6b"/>
+    <text x="760" y="205" text-anchor="middle" fill="#1f3a5f">输入主题</text>
+    <rect x="690" y="250" width="140" height="40" rx="8" fill="#ffffff" stroke="#2f9e6b"/>
+    <text x="760" y="275" text-anchor="middle" fill="#1f3a5f">后台多轮检索</text>
+    <rect x="690" y="320" width="140" height="40" rx="8" fill="#ffffff" stroke="#2f9e6b"/>
+    <text x="760" y="345" text-anchor="middle" fill="#1f3a5f">结构化成文</text>
+    <rect x="690" y="390" width="140" height="40" rx="8" fill="#ffffff" stroke="#2f9e6b"/>
+    <text x="760" y="415" text-anchor="middle" fill="#1f3a5f">落库 ready</text>
+    <rect x="690" y="460" width="140" height="40" rx="8" fill="#ffffff" stroke="#2f9e6b"/>
+    <text x="760" y="485" text-anchor="middle" fill="#1f3a5f">下载 MD / PDF</text>
+    <ellipse cx="760" cy="545" rx="52" ry="20" fill="#ffffff" stroke="#2f9e6b"/>
+    <text x="760" y="550" text-anchor="middle" fill="#1f3a5f">结束</text>
+  </g>
+  <g stroke="#5b6b8c" stroke-width="1.5" marker-end="url(#ar)">
+    <line x1="760" y1="160" x2="760" y2="180"/><line x1="760" y1="220" x2="760" y2="250"/>
+    <line x1="760" y1="290" x2="760" y2="320"/><line x1="760" y1="360" x2="760" y2="390"/>
+    <line x1="760" y1="430" x2="760" y2="460"/><line x1="760" y1="500" x2="760" y2="545"/>
+  </g>
+</svg>

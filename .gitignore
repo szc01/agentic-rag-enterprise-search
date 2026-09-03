@@ -1,0 +1,55 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+*.so
+
+# 虚拟环境
+.venv/
+venv/
+env/
+
+# 环境变量（含密钥）
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 上传文件
+uploads/
+
+# 数据库
+*.db
+*.sqlite3
+
+# 日志
+*.log
+
+# 调试截图（playwright 校验脚本产物）
+_ui_check_*.png
+
+# 模型缓存（BGE/Reranker 本地模型，很大）
+.cache/
+.huggingface/
+
+# 模型残留（tokenizer 等大文件，真实权重在 HF 缓存）——仅根目录
+/models/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# 测试覆盖率
+htmlcov/
+.coverage
+.pytest_cache/
+
+# Alembic（版本文件保留，但数据文件忽略）
+alembic/versions/*.pyc

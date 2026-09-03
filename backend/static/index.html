@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agentic RAG 企业智能搜索</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+  <div class="layout">
+    <!-- 左侧深色导航栏 -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-logo">R</div>
+        <div class="brand-text">
+          <div class="brand-title">智能搜索</div>
+          <div class="brand-sub">Agentic RAG</div>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <button class="nav-item active" data-view="search">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
+          <span>智能搜索</span>
+        </button>
+        <button class="nav-item" data-view="kb">
+          <svg viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M8 3v18"/></svg>
+          <span>知识库</span>
+        </button>
+        <button class="nav-item" data-view="report">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h5"/></svg>
+          <span>调研报告</span>
+        </button>
+        <button class="nav-item" data-view="dashboard">
+          <svg viewBox="0 0 24 24"><rect x="3" y="12" width="4" height="9"/><rect x="10" y="6" width="4" height="15"/><rect x="17" y="3" width="4" height="18"/></svg>
+          <span>运营看板</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">DeepSeek · BGE · pgvector</div>
+    </aside>
+
+    <!-- 内容区 -->
+    <main class="content">
+      <!-- 智能搜索 -->
+      <section id="view-search" class="view active">
+        <header class="page-head">
+          <h1>智能搜索</h1>
+          <p class="page-desc">多步 Agentic 检索 · 流式回答 · 引用溯源</p>
+        </header>
+
+        <div class="search-bar card">
+          <textarea id="search-input" rows="2" placeholder="输入你的问题，例如：What is a good chunking strategy?"></textarea>
+          <div class="search-actions">
+            <label class="switch">
+              <input type="checkbox" id="agentic-toggle" checked>
+              <span class="slider"></span>
+              <span class="switch-label">深度调研模式（多步 Agentic 检索）</span>
+            </label>
+            <div class="search-actions-right">
+              <button id="clear-chat-btn" class="btn btn-ghost btn-sm">↺ 清空对话</button>
+              <button id="search-btn" class="btn btn-primary">发送</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="search-layout">
+          <div class="search-main">
+            <div id="chat-container" class="chat-container"></div>
+          </div>
+          <aside class="search-side">
+            <div class="card trace-panel">
+              <h3>Agent 流程</h3>
+              <div class="flow">
+                <div class="flow-node" data-node="planner"><span class="flow-dot"></span><span class="flow-label">Planner</span></div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-node" data-node="retrieval"><span class="flow-dot"></span><span class="flow-label">Retrieval</span></div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-node" data-node="critic"><span class="flow-dot"></span><span class="flow-label">Critic</span><span class="flow-round" id="critic-round"></span></div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-node" data-node="synthesizer"><span class="flow-dot"></span><span class="flow-label">Synthesizer</span></div>
+              </div>
+              <div id="trace-stage" class="flow-stage">等待检索</div>
+              <div class="flow-meta">
+                <div class="flow-meta-row"><span>子查询数</span><b id="trace-subqueries">—</b></div>
+                <div class="flow-meta-row"><span>迭代轮数</span><b id="trace-iterations">—</b></div>
+                <div class="flow-meta-row"><span>耗时</span><b id="trace-latency">—</b></div>
+                <div class="flow-meta-row"><span>置信度</span><b id="trace-confidence">—</b></div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- 知识库 -->
+      <section id="view-kb" class="view">
+        <header class="page-head">
+          <h1>知识库</h1>
+          <p class="page-desc">文档上传 · 解析分片 · 向量入库</p>
+        </header>
+
+        <div class="kb-toolbar card">
+          <input type="file" id="file-input" accept=".pdf,.docx,.doc,.md,.txt,.html" multiple hidden>
+          <button id="upload-btn" class="btn btn-primary">＋ 上传文档</button>
+          <span id="kb-status" class="kb-status"></span>
+        </div>
+
+        <div class="card table-card">
+          <table class="table">
+            <thead>
+              <tr><th>文件名</th><th>类型</th><th>状态</th><th>分片数</th><th>上传时间</th><th></th></tr>
+            </thead>
+            <tbody id="doc-tbody">
+              <tr class="empty-row"><td colspan="6">加载中…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 调研报告 -->
+      <section id="view-report" class="view">
+        <header class="page-head">
+          <h1>调研报告</h1>
+          <p class="page-desc">自动多步检索 · 结构化长文报告</p>
+        </header>
+
+        <div class="report-form card">
+          <input type="text" id="report-topic" placeholder="调研主题，例如：RAG chunking best practices">
+          <select id="report-depth">
+            <option value="1">深度 1（单轮）</option>
+            <option value="2" selected>深度 2</option>
+            <option value="3">深度 3</option>
+            <option value="4">深度 4</option>
+            <option value="5">深度 5</option>
+          </select>
+          <button id="report-generate-btn" class="btn btn-primary">生成报告</button>
+          <span id="report-status" class="kb-status"></span>
+        </div>
+
+        <div class="card table-card">
+          <table class="table">
+            <thead>
+              <tr><th>主题</th><th>状态</th><th>深度</th><th>置信度</th><th>创建时间</th><th></th></tr>
+            </thead>
+            <tbody id="report-tbody">
+              <tr class="empty-row"><td colspan="6">加载中…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 运营看板 -->
+      <section id="view-dashboard" class="view">
+        <header class="page-head">
+          <h1>运营看板</h1>
+          <p class="page-desc">知识库与查询运营指标</p>
+        </header>
+
+        <div class="stats-grid">
+          <div class="stat-card"><div class="stat-label">文档数</div><div class="stat-value" id="stat-docs">—</div></div>
+          <div class="stat-card"><div class="stat-label">分片数</div><div class="stat-value" id="stat-chunks">—</div></div>
+          <div class="stat-card"><div class="stat-label">查询总量</div><div class="stat-value" id="stat-queries">—</div></div>
+          <div class="stat-card"><div class="stat-label">平均置信度</div><div class="stat-value" id="stat-avg-conf">—</div></div>
+        </div>
+
+        <div class="dash-grid">
+          <div class="card dash-panel">
+            <h3>热点问题（近 7 天）</h3>
+            <ul id="hot-queries" class="plain-list"><li class="empty-row">加载中…</li></ul>
+          </div>
+          <div class="card dash-panel">
+            <h3>低置信度回答队列</h3>
+            <ul id="low-confidence" class="plain-list"><li class="empty-row">加载中…</li></ul>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- 报告查看弹窗 -->
+  <div id="report-modal" class="modal hidden">
+    <div class="modal-backdrop" id="modal-backdrop"></div>
+    <div class="modal-panel">
+      <div class="modal-head">
+        <h2 id="modal-title">报告</h2>
+        <div class="modal-actions">
+          <a id="modal-download" class="btn btn-secondary" href="#">下载 Markdown</a>
+          <button id="modal-close" class="btn btn-ghost">关闭</button>
+        </div>
+      </div>
+      <div id="report-viewer" class="markdown-body"></div>
+    </div>
+  </div>
+
+  <script src="/static/js/md.js"></script>
+  <script src="/static/js/app.js"></script>
+</body>
+</html>

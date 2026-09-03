@@ -1,0 +1,1284 @@
+INFO 开始评测：Reranker ON ...
+INFO 正在加载 Embedding 模型: BAAI/bge-large-zh-v1.5 ...
+INFO Loading SentenceTransformer model from BAAI/bge-large-zh-v1.5.
+[config] 加载环境变量: D:\agentic-rag-system\.env
+Loading weights:   0%|          | 0/391 [00:00<?, ?it/s]Loading weights: 100%|██████████| 391/391 [00:00<00:00, 8604.67it/s]
+INFO Embedding 模型加载完成
+2026-09-02 20:07:37,662 INFO sqlalchemy.engine.Engine select pg_catalog.version()
+INFO select pg_catalog.version()
+2026-09-02 20:07:37,662 INFO sqlalchemy.engine.Engine [raw sql] ()
+INFO [raw sql] ()
+2026-09-02 20:07:37,670 INFO sqlalchemy.engine.Engine select current_schema()
+INFO select current_schema()
+2026-09-02 20:07:37,670 INFO sqlalchemy.engine.Engine [raw sql] ()
+INFO [raw sql] ()
+2026-09-02 20:07:37,673 INFO sqlalchemy.engine.Engine show standard_conforming_strings
+INFO show standard_conforming_strings
+2026-09-02 20:07:37,673 INFO sqlalchemy.engine.Engine [raw sql] ()
+INFO [raw sql] ()
+2026-09-02 20:07:37,675 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+INFO BEGIN (implicit)
+2026-09-02 20:07:37,699 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.content 
+FROM chunks
+INFO SELECT chunks.id, chunks.content 
+FROM chunks
+2026-09-02 20:07:37,700 INFO sqlalchemy.engine.Engine [generated in 0.00059s] ()
+INFO [generated in 0.00059s] ()
+INFO BM25 索引构建完成，共 11 个分片
+2026-09-02 20:07:37,725 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:07:37,726 INFO sqlalchemy.engine.Engine [generated in 0.00262s] (1, '[-0.014103427529335022,-0.031597163528203964,0.02244224026799202,-0.013812577351927757,0.020858600735664368,0.011959809809923172,-0.02077788673341274 ... (21421 characters truncated) ... -0.0013051723362877965,0.008810936473309994,0.005049832630902529,0.047977037727832794,-0.03964746743440628,-0.06410198658704758,0.029253289103507996]', 40)
+INFO [generated in 0.00262s] (1, '[-0.014103427529335022,-0.031597163528203964,0.02244224026799202,-0.013812577351927757,0.020858600735664368,0.011959809809923172,-0.02077788673341274 ... (21421 characters truncated) ... -0.0013051723362877965,0.008810936473309994,0.005049832630902529,0.047977037727832794,-0.03964746743440628,-0.06410198658704758,0.029253289103507996]', 40)
+2026-09-02 20:07:37,797 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+2026-09-02 20:07:37,798 INFO sqlalchemy.engine.Engine [generated in 0.00095s] (1, 3, 5, 6, 10, 2, 9, 11, 4, 8, 7)
+INFO [generated in 0.00095s] (1, 3, 5, 6, 10, 2, 9, 11, 4, 8, 7)
+INFO 正在加载 Reranker 模型...
+INFO No modules.json found for BAAI/bge-reranker-base, initializing a new CrossEncoder model.
+Loading weights:   0%|          | 0/201 [00:00<?, ?it/s]Loading weights: 100%|██████████| 201/201 [00:00<00:00, 5368.55it/s]
+INFO Reranker 模型加载完成
+Batches:   0%|          | 0/1 [00:00<?, ?it/s]Batches: 100%|██████████| 1/1 [00:03<00:00,  3.92s/it]Batches: 100%|██████████| 1/1 [00:03<00:00,  3.92s/it]
+2026-09-02 20:07:48,957 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:07:48,958 INFO sqlalchemy.engine.Engine [cached since 11.23s ago] (1, '[0.022666174918413162,0.011515541933476925,0.0037995888851583004,0.006111002527177334,0.03815844655036926,0.03367939591407776,-0.04077677056193352,-0 ... (21410 characters truncated) ... ,0.07960030436515808,-0.0023127340245991945,0.05921495333313942,0.024237293750047684,-0.000919987796805799,0.014294486492872238,0.027487939223647118]', 40)
+INFO [cached since 11.23s ago] (1, '[0.022666174918413162,0.011515541933476925,0.0037995888851583004,0.006111002527177334,0.03815844655036926,0.03367939591407776,-0.04077677056193352,-0 ... (21410 characters truncated) ... ,0.07960030436515808,-0.0023127340245991945,0.05921495333313942,0.024237293750047684,-0.000919987796805799,0.014294486492872238,0.027487939223647118]', 40)
+2026-09-02 20:07:49,008 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+2026-09-02 20:07:49,009 INFO sqlalchemy.engine.Engine [cached since 11.21s ago] (3, 7, 11, 8, 4, 5, 2, 10, 1, 9, 6)
+INFO [cached since 11.21s ago] (3, 7, 11, 8, 4, 5, 2, 10, 1, 9, 6)
+Batches:   0%|          | 0/1 [00:00<?, ?it/s]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.71s/it]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.71s/it]
+2026-09-02 20:07:50,938 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:07:50,939 INFO sqlalchemy.engine.Engine [cached since 13.22s ago] (1, '[-0.00448428513482213,-0.02341405116021633,-0.041124019771814346,0.03818957507610321,-0.0262302216142416,-0.01244323793798685,-0.0322708822786808,-0. ... (21380 characters truncated) ... .042526569217443466,-0.0035616199020296335,0.021226869896054268,-0.03684006258845329,-0.022299375385046005,-0.025244997814297676,0.06702742725610733]', 40)
+INFO [cached since 13.22s ago] (1, '[-0.00448428513482213,-0.02341405116021633,-0.041124019771814346,0.03818957507610321,-0.0262302216142416,-0.01244323793798685,-0.0322708822786808,-0. ... (21380 characters truncated) ... .042526569217443466,-0.0035616199020296335,0.021226869896054268,-0.03684006258845329,-0.022299375385046005,-0.025244997814297676,0.06702742725610733]', 40)
+2026-09-02 20:07:50,987 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+2026-09-02 20:07:50,988 INFO sqlalchemy.engine.Engine [cached since 13.19s ago] (6, 9, 5, 7, 2, 4, 1, 11, 3, 10, 8)
+INFO [cached since 13.19s ago] (6, 9, 5, 7, 2, 4, 1, 11, 3, 10, 8)
+Batches:   0%|          | 0/1 [00:00<?, ?it/s]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.63s/it]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.63s/it]
+2026-09-02 20:07:52,839 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:07:52,840 INFO sqlalchemy.engine.Engine [cached since 15.12s ago] (1, '[0.016676224768161774,0.007492600474506617,-0.03774314746260643,0.0016515138559043407,0.011642700992524624,0.008821767754852772,-0.004929419606924057 ... (21431 characters truncated) ... 59,0.009591388516128063,-0.04532624036073685,0.01977774314582348,0.025981051847338676,-0.029389524832367897,0.01897074468433857,0.027526449412107468]', 40)
+INFO [cached since 15.12s ago] (1, '[0.016676224768161774,0.007492600474506617,-0.03774314746260643,0.0016515138559043407,0.011642700992524624,0.008821767754852772,-0.004929419606924057 ... (21431 characters truncated) ... 59,0.009591388516128063,-0.04532624036073685,0.01977774314582348,0.025981051847338676,-0.029389524832367897,0.01897074468433857,0.027526449412107468]', 40)
+2026-09-02 20:07:52,888 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+2026-09-02 20:07:52,889 INFO sqlalchemy.engine.Engine [cached since 15.09s ago] (6, 9, 11, 8, 10, 5, 7, 3, 1, 4, 2)
+INFO [cached since 15.09s ago] (6, 9, 11, 8, 10, 5, 7, 3, 1, 4, 2)
+Batches:   0%|          | 0/1 [00:00<?, ?it/s]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.66s/it]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.66s/it]
+2026-09-02 20:07:54,881 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:07:54,882 INFO sqlalchemy.engine.Engine [cached since 17.16s ago] (1, '[0.01570136845111847,-0.02504821866750717,0.019790738821029663,-0.06245475262403488,0.0007771599921397865,0.024735160171985626,-0.006640429608523846, ... (21394 characters truncated) ... 6,0.03692218288779259,-0.018162690103054047,0.012454219162464142,0.017253393307328224,-0.00719618983566761,-0.03559326007962227,0.030143851414322853]', 40)
+INFO [cached since 17.16s ago] (1, '[0.01570136845111847,-0.02504821866750717,0.019790738821029663,-0.06245475262403488,0.0007771599921397865,0.024735160171985626,-0.006640429608523846, ... (21394 characters truncated) ... 6,0.03692218288779259,-0.018162690103054047,0.012454219162464142,0.017253393307328224,-0.00719618983566761,-0.03559326007962227,0.030143851414322853]', 40)
+2026-09-02 20:07:54,932 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+2026-09-02 20:07:54,932 INFO sqlalchemy.engine.Engine [cached since 17.14s ago] (1, 2, 5, 4, 10, 3, 6, 9, 8, 7, 11)
+INFO [cached since 17.14s ago] (1, 2, 5, 4, 10, 3, 6, 9, 8, 7, 11)
+Batches:   0%|          | 0/1 [00:00<?, ?it/s]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.79s/it]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.79s/it]
+2026-09-02 20:07:57,015 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:07:57,016 INFO sqlalchemy.engine.Engine [cached since 19.29s ago] (1, '[-0.017210884019732475,0.006140338256955147,-0.00022504111984744668,-0.014795798808336258,0.013825166039168835,-0.0014320965856313705,-0.045775581151 ... (21394 characters truncated) ... -0.007573325652629137,0.024514999240636826,0.004442020319402218,0.0033168019726872444,0.0004441015771590173,0.004949675872921944,0.00823318213224411]', 40)
+INFO [cached since 19.29s ago] (1, '[-0.017210884019732475,0.006140338256955147,-0.00022504111984744668,-0.014795798808336258,0.013825166039168835,-0.0014320965856313705,-0.045775581151 ... (21394 characters truncated) ... -0.007573325652629137,0.024514999240636826,0.004442020319402218,0.0033168019726872444,0.0004441015771590173,0.004949675872921944,0.00823318213224411]', 40)
+2026-09-02 20:07:57,063 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+2026-09-02 20:07:57,063 INFO sqlalchemy.engine.Engine [cached since 19.27s ago] (5, 2, 11, 8, 7, 1, 4, 3, 10, 6, 9)
+INFO [cached since 19.27s ago] (5, 2, 11, 8, 7, 1, 4, 3, 10, 6, 9)
+Batches:   0%|          | 0/1 [00:00<?, ?it/s]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.79s/it]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.79s/it]
+2026-09-02 20:07:59,163 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:07:59,164 INFO sqlalchemy.engine.Engine [cached since 21.44s ago] (1, '[-0.004726620856672525,-0.00787863228470087,-0.003735656151548028,-0.007197556085884571,-0.006308557465672493,0.01913435198366642,-0.0252191815525293 ... (21483 characters truncated) ... ,0.026325305923819542,-0.03967135399580002,0.053147848695516586,0.05758119747042656,-0.06464670598506927,-0.0004451586864888668,-0.04791354760527611]', 40)
+INFO [cached since 21.44s ago] (1, '[-0.004726620856672525,-0.00787863228470087,-0.003735656151548028,-0.007197556085884571,-0.006308557465672493,0.01913435198366642,-0.0252191815525293 ... (21483 characters truncated) ... ,0.026325305923819542,-0.03967135399580002,0.053147848695516586,0.05758119747042656,-0.06464670598506927,-0.0004451586864888668,-0.04791354760527611]', 40)
+2026-09-02 20:07:59,211 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+2026-09-02 20:07:59,212 INFO sqlalchemy.engine.Engine [cached since 21.41s ago] (4, 2, 3, 5, 1, 6, 9, 11, 7, 10, 8)
+INFO [cached since 21.41s ago] (4, 2, 3, 5, 1, 6, 9, 11, 7, 10, 8)
+Batches:   0%|          | 0/1 [00:00<?, ?it/s]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.63s/it]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.63s/it]
+2026-09-02 20:08:01,129 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:08:01,130 INFO sqlalchemy.engine.Engine [cached since 23.41s ago] (1, '[0.02103651873767376,0.010908154770731926,-0.0175723135471344,-0.0343758761882782,0.00018220279889646918,0.057280588895082474,-0.011768531985580921,0 ... (21439 characters truncated) ... ,0.05446475371718407,-0.0666329562664032,0.006998126395046711,0.0033931508660316467,-0.04013105481863022,1.7263870176975615e-05,-0.04051501676440239]', 40)
+INFO [cached since 23.41s ago] (1, '[0.02103651873767376,0.010908154770731926,-0.0175723135471344,-0.0343758761882782,0.00018220279889646918,0.057280588895082474,-0.011768531985580921,0 ... (21439 characters truncated) ... ,0.05446475371718407,-0.0666329562664032,0.006998126395046711,0.0033931508660316467,-0.04013105481863022,1.7263870176975615e-05,-0.04051501676440239]', 40)
+2026-09-02 20:08:01,183 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+2026-09-02 20:08:01,184 INFO sqlalchemy.engine.Engine [cached since 23.39s ago] (4, 3, 5, 2, 8, 6, 9, 7, 11, 1, 10)
+INFO [cached since 23.39s ago] (4, 3, 5, 2, 8, 6, 9, 7, 11, 1, 10)
+Batches:   0%|          | 0/1 [00:00<?, ?it/s]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.62s/it]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.62s/it]
+2026-09-02 20:08:03,100 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:08:03,101 INFO sqlalchemy.engine.Engine [cached since 25.38s ago] (1, '[-0.006951477378606796,-0.004740750417113304,-0.0012777267256751657,0.014593773521482944,0.02063414826989174,0.014638257212936878,-0.0308810863643884 ... (21397 characters truncated) ... .01659533940255642,-0.019335487857460976,0.0032629140187054873,0.02683420293033123,-0.049596745520830154,0.033764492720365524,-0.0075938887894153595]', 40)
+INFO [cached since 25.38s ago] (1, '[-0.006951477378606796,-0.004740750417113304,-0.0012777267256751657,0.014593773521482944,0.02063414826989174,0.014638257212936878,-0.0308810863643884 ... (21397 characters truncated) ... .01659533940255642,-0.019335487857460976,0.0032629140187054873,0.02683420293033123,-0.049596745520830154,0.033764492720365524,-0.0075938887894153595]', 40)
+2026-09-02 20:08:03,151 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+2026-09-02 20:08:03,151 INFO sqlalchemy.engine.Engine [cached since 25.35s ago] (11, 7, 4, 5, 2, 10, 1, 3, 6, 9, 8)
+INFO [cached since 25.35s ago] (11, 7, 4, 5, 2, 10, 1, 3, 6, 9, 8)
+Batches:   0%|          | 0/1 [00:00<?, ?it/s]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.69s/it]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.69s/it]
+2026-09-02 20:08:05,152 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:08:05,152 INFO sqlalchemy.engine.Engine [cached since 27.43s ago] (1, '[0.015797065570950508,0.001936421263962984,0.017595229670405388,-0.03914903104305267,-0.015890076756477356,-0.014267651364207268,-0.07374683767557144 ... (21437 characters truncated) ... 18982857465744,-0.014273497276008129,0.0077714333310723305,0.0025651606265455484,-0.025572260841727257,-0.00016687606694176793,-0.011247829534113407]', 40)
+INFO [cached since 27.43s ago] (1, '[0.015797065570950508,0.001936421263962984,0.017595229670405388,-0.03914903104305267,-0.015890076756477356,-0.014267651364207268,-0.07374683767557144 ... (21437 characters truncated) ... 18982857465744,-0.014273497276008129,0.0077714333310723305,0.0025651606265455484,-0.025572260841727257,-0.00016687606694176793,-0.011247829534113407]', 40)
+2026-09-02 20:08:05,202 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+2026-09-02 20:08:05,203 INFO sqlalchemy.engine.Engine [cached since 27.41s ago] (3, 7, 5, 11, 6, 9, 8, 2, 4, 10, 1)
+INFO [cached since 27.41s ago] (3, 7, 5, 11, 6, 9, 8, 2, 4, 10, 1)
+Batches:   0%|          | 0/1 [00:00<?, ?it/s]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.71s/it]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.71s/it]
+2026-09-02 20:08:07,205 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:08:07,205 INFO sqlalchemy.engine.Engine [cached since 29.48s ago] (1, '[-0.008212708868086338,0.02628360502421856,0.03252653777599335,0.0010141130769625306,-0.0021309531293809414,0.01626516692340374,-0.013075730763375759 ... (21370 characters truncated) ... 3,0.010912833735346794,0.0352289155125618,0.014342759735882282,-0.023370791226625443,-0.018457774072885513,0.03761696070432663,-0.021790536120533943]', 40)
+INFO [cached since 29.48s ago] (1, '[-0.008212708868086338,0.02628360502421856,0.03252653777599335,0.0010141130769625306,-0.0021309531293809414,0.01626516692340374,-0.013075730763375759 ... (21370 characters truncated) ... 3,0.010912833735346794,0.0352289155125618,0.014342759735882282,-0.023370791226625443,-0.018457774072885513,0.03761696070432663,-0.021790536120533943]', 40)
+2026-09-02 20:08:07,255 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+2026-09-02 20:08:07,256 INFO sqlalchemy.engine.Engine [cached since 29.46s ago] (6, 9, 10, 5, 2, 7, 11, 8, 4, 3, 1)
+INFO [cached since 29.46s ago] (6, 9, 10, 5, 2, 7, 11, 8, 4, 3, 1)
+Batches:   0%|          | 0/1 [00:00<?, ?it/s]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.72s/it]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.72s/it]
+2026-09-02 20:08:09,272 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:08:09,272 INFO sqlalchemy.engine.Engine [cached since 31.55s ago] (1, '[0.028593242168426514,-0.002756106434389949,0.012830527499318123,-0.02955659292638302,0.012335706502199173,-0.003519047750160098,-0.06168071925640106 ... (21408 characters truncated) ... .040277719497680664,0.015357831493020058,0.015209893696010113,0.0001582329859957099,-0.03512539342045784,-0.004726542625576258,-0.007767890579998493]', 40)
+INFO [cached since 31.55s ago] (1, '[0.028593242168426514,-0.002756106434389949,0.012830527499318123,-0.02955659292638302,0.012335706502199173,-0.003519047750160098,-0.06168071925640106 ... (21408 characters truncated) ... .040277719497680664,0.015357831493020058,0.015209893696010113,0.0001582329859957099,-0.03512539342045784,-0.004726542625576258,-0.007767890579998493]', 40)
+2026-09-02 20:08:09,322 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+2026-09-02 20:08:09,323 INFO sqlalchemy.engine.Engine [cached since 31.53s ago] (7, 11, 8, 3, 2, 5, 4, 1, 6, 9, 10)
+INFO [cached since 31.53s ago] (7, 11, 8, 3, 2, 5, 4, 1, 6, 9, 10)
+Batches:   0%|          | 0/1 [00:00<?, ?it/s]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.66s/it]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.66s/it]
+2026-09-02 20:08:11,244 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:08:11,245 INFO sqlalchemy.engine.Engine [cached since 33.52s ago] (1, '[0.007837790995836258,-0.010192273184657097,0.04291950911283493,-0.06084517017006874,0.02562008984386921,0.002014374127611518,-0.012696952559053898,- ... (21369 characters truncated) ... ,0.029995813965797424,0.0007413410348817706,0.058243341743946075,0.034039516001939774,-0.02912517823278904,0.008813566528260708,-0.05534978583455086]', 40)
+INFO [cached since 33.52s ago] (1, '[0.007837790995836258,-0.010192273184657097,0.04291950911283493,-0.06084517017006874,0.02562008984386921,0.002014374127611518,-0.012696952559053898,- ... (21369 characters truncated) ... ,0.029995813965797424,0.0007413410348817706,0.058243341743946075,0.034039516001939774,-0.02912517823278904,0.008813566528260708,-0.05534978583455086]', 40)
+2026-09-02 20:08:11,294 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+2026-09-02 20:08:11,295 INFO sqlalchemy.engine.Engine [cached since 33.5s ago] (3, 4, 2, 8, 7, 5, 11, 1, 10, 9, 6)
+INFO [cached since 33.5s ago] (3, 4, 2, 8, 7, 5, 11, 1, 10, 9, 6)
+Batches:   0%|          | 0/1 [00:00<?, ?it/s]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.68s/it]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.68s/it]
+2026-09-02 20:08:13,255 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:08:13,255 INFO sqlalchemy.engine.Engine [cached since 35.53s ago] (1, '[-0.030476771295070648,0.010922943241894245,-0.0293040219694376,-0.009495114907622337,0.02844998799264431,0.023535529151558876,0.04560091719031334,0. ... (21365 characters truncated) ... 014038687571883202,0.02336769364774227,-0.0025702884886413813,-0.01942550018429756,-0.027127277106046677,-0.0031785238534212112,-0.03636745363473892]', 40)
+INFO [cached since 35.53s ago] (1, '[-0.030476771295070648,0.010922943241894245,-0.0293040219694376,-0.009495114907622337,0.02844998799264431,0.023535529151558876,0.04560091719031334,0. ... (21365 characters truncated) ... 014038687571883202,0.02336769364774227,-0.0025702884886413813,-0.01942550018429756,-0.027127277106046677,-0.0031785238534212112,-0.03636745363473892]', 40)
+2026-09-02 20:08:13,305 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+2026-09-02 20:08:13,305 INFO sqlalchemy.engine.Engine [cached since 35.51s ago] (5, 2, 3, 7, 4, 8, 10, 11, 1, 9, 6)
+INFO [cached since 35.51s ago] (5, 2, 3, 7, 4, 8, 10, 11, 1, 9, 6)
+Batches:   0%|          | 0/1 [00:00<?, ?it/s]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.65s/it]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.65s/it]
+2026-09-02 20:08:15,223 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:08:15,224 INFO sqlalchemy.engine.Engine [cached since 37.5s ago] (1, '[0.010142235085368156,0.022614797577261925,-0.03257683292031288,-0.0161764994263649,0.001508963294327259,0.038387056440114975,0.011363605968654156,-0 ... (21383 characters truncated) ... 484,0.014365392737090588,-0.008650718256831169,0.019801065325737,0.01812245137989521,-0.014469748362898827,0.002679233206436038,0.010894722305238247]', 40)
+INFO [cached since 37.5s ago] (1, '[0.010142235085368156,0.022614797577261925,-0.03257683292031288,-0.0161764994263649,0.001508963294327259,0.038387056440114975,0.011363605968654156,-0 ... (21383 characters truncated) ... 484,0.014365392737090588,-0.008650718256831169,0.019801065325737,0.01812245137989521,-0.014469748362898827,0.002679233206436038,0.010894722305238247]', 40)
+2026-09-02 20:08:15,275 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+2026-09-02 20:08:15,275 INFO sqlalchemy.engine.Engine [cached since 37.48s ago] (4, 1, 5, 7, 6, 9, 10, 2, 11, 3, 8)
+INFO [cached since 37.48s ago] (4, 1, 5, 7, 6, 9, 10, 2, 11, 3, 8)
+Batches:   0%|          | 0/1 [00:00<?, ?it/s]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.67s/it]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.68s/it]
+2026-09-02 20:08:17,242 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:08:17,242 INFO sqlalchemy.engine.Engine [cached since 39.52s ago] (1, '[-0.009821627289056778,0.03008163720369339,0.007182343862950802,0.00622017914429307,-0.027602750808000565,0.00509235356003046,-0.014609500765800476,- ... (21357 characters truncated) ... 660683,-0.0299054067581892,0.03432711586356163,0.058742839843034744,-0.05721811205148697,-0.00447194604203105,0.0436515286564827,-0.0172920823097229]', 40)
+INFO [cached since 39.52s ago] (1, '[-0.009821627289056778,0.03008163720369339,0.007182343862950802,0.00622017914429307,-0.027602750808000565,0.00509235356003046,-0.014609500765800476,- ... (21357 characters truncated) ... 660683,-0.0299054067581892,0.03432711586356163,0.058742839843034744,-0.05721811205148697,-0.00447194604203105,0.0436515286564827,-0.0172920823097229]', 40)
+2026-09-02 20:08:17,290 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+2026-09-02 20:08:17,290 INFO sqlalchemy.engine.Engine [cached since 39.49s ago] (6, 9, 7, 11, 10, 3, 8, 4, 5, 1, 2)
+INFO [cached since 39.49s ago] (6, 9, 7, 11, 10, 3, 8, 4, 5, 1, 2)
+Batches:   0%|          | 0/1 [00:00<?, ?it/s]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.72s/it]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.72s/it]
+2026-09-02 20:08:19,336 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:08:19,336 INFO sqlalchemy.engine.Engine [cached since 41.61s ago] (1, '[0.0008207097998820245,-0.005227094981819391,0.008584193885326385,-0.009971236810088158,0.03484637290239334,0.04951201006770134,0.003905218094587326, ... (21368 characters truncated) ... 0020382488146424294,-0.0011170151410624385,0.00982050970196724,0.005839132703840733,-0.014315381646156311,0.0031608990393579006,-0.08503306657075882]', 40)
+INFO [cached since 41.61s ago] (1, '[0.0008207097998820245,-0.005227094981819391,0.008584193885326385,-0.009971236810088158,0.03484637290239334,0.04951201006770134,0.003905218094587326, ... (21368 characters truncated) ... 0020382488146424294,-0.0011170151410624385,0.00982050970196724,0.005839132703840733,-0.014315381646156311,0.0031608990393579006,-0.08503306657075882]', 40)
+2026-09-02 20:08:19,385 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+2026-09-02 20:08:19,386 INFO sqlalchemy.engine.Engine [cached since 41.59s ago] (8, 5, 7, 4, 1, 3, 2, 11, 10, 9, 6)
+INFO [cached since 41.59s ago] (8, 5, 7, 4, 1, 3, 2, 11, 10, 9, 6)
+Batches:   0%|          | 0/1 [00:00<?, ?it/s]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.72s/it]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.72s/it]
+2026-09-02 20:08:21,384 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:08:21,384 INFO sqlalchemy.engine.Engine [cached since 43.66s ago] (1, '[0.006226737983524799,-0.035788893699645996,-0.015238728374242783,-0.008452916517853737,0.04926079884171486,0.03373037651181221,0.026887383311986923, ... (21382 characters truncated) ... 0.07169319689273834,-0.009047486819326878,-0.01665106974542141,-0.0030607962980866432,-0.03690392151474953,0.010062869638204575,-0.03071814589202404]', 40)
+INFO [cached since 43.66s ago] (1, '[0.006226737983524799,-0.035788893699645996,-0.015238728374242783,-0.008452916517853737,0.04926079884171486,0.03373037651181221,0.026887383311986923, ... (21382 characters truncated) ... 0.07169319689273834,-0.009047486819326878,-0.01665106974542141,-0.0030607962980866432,-0.03690392151474953,0.010062869638204575,-0.03071814589202404]', 40)
+2026-09-02 20:08:21,438 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+2026-09-02 20:08:21,438 INFO sqlalchemy.engine.Engine [cached since 43.64s ago] (7, 8, 5, 3, 11, 4, 2, 10, 1, 9, 6)
+INFO [cached since 43.64s ago] (7, 8, 5, 3, 11, 4, 2, 10, 1, 9, 6)
+Batches:   0%|          | 0/1 [00:00<?, ?it/s]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.66s/it]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.66s/it]
+2026-09-02 20:08:23,366 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:08:23,367 INFO sqlalchemy.engine.Engine [cached since 45.64s ago] (1, '[0.00910661555826664,0.020182013511657715,0.013488635420799255,0.03468405455350876,0.034319717437028885,0.0238882377743721,0.00926432479172945,-0.035 ... (21375 characters truncated) ... ,-0.016214091330766678,0.004408878739923239,0.061861053109169006,0.008398277685046196,-0.020719101652503014,0.01763160713016987,-0.09027563780546188]', 40)
+INFO [cached since 45.64s ago] (1, '[0.00910661555826664,0.020182013511657715,0.013488635420799255,0.03468405455350876,0.034319717437028885,0.0238882377743721,0.00926432479172945,-0.035 ... (21375 characters truncated) ... ,-0.016214091330766678,0.004408878739923239,0.061861053109169006,0.008398277685046196,-0.020719101652503014,0.01763160713016987,-0.09027563780546188]', 40)
+2026-09-02 20:08:23,417 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+2026-09-02 20:08:23,417 INFO sqlalchemy.engine.Engine [cached since 45.62s ago] (4, 3, 5, 1, 2, 7, 10, 11, 9, 6, 8)
+INFO [cached since 45.62s ago] (4, 3, 5, 1, 2, 7, 10, 11, 9, 6, 8)
+Batches:   0%|          | 0/1 [00:00<?, ?it/s]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.65s/it]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.65s/it]
+2026-09-02 20:08:25,381 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:08:25,382 INFO sqlalchemy.engine.Engine [cached since 47.66s ago] (1, '[0.0076356190256774426,-0.02708466351032257,0.03306051343679428,-0.028446335345506668,0.05179211497306824,0.044032588601112366,-0.017865393310785294, ... (21433 characters truncated) ... ,0.04075803607702255,0.004365490283817053,0.011243324726819992,-0.008681219071149826,-0.0010915433522313833,-0.0202208012342453,-0.01714521273970604]', 40)
+INFO [cached since 47.66s ago] (1, '[0.0076356190256774426,-0.02708466351032257,0.03306051343679428,-0.028446335345506668,0.05179211497306824,0.044032588601112366,-0.017865393310785294, ... (21433 characters truncated) ... ,0.04075803607702255,0.004365490283817053,0.011243324726819992,-0.008681219071149826,-0.0010915433522313833,-0.0202208012342453,-0.01714521273970604]', 40)
+2026-09-02 20:08:25,427 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+2026-09-02 20:08:25,427 INFO sqlalchemy.engine.Engine [cached since 47.63s ago] (5, 1, 8, 7, 3, 11, 4, 10, 6, 9, 2)
+INFO [cached since 47.63s ago] (5, 1, 8, 7, 3, 11, 4, 10, 6, 9, 2)
+Batches:   0%|          | 0/1 [00:00<?, ?it/s]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.71s/it]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.71s/it]
+2026-09-02 20:08:27,457 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:08:27,457 INFO sqlalchemy.engine.Engine [cached since 49.73s ago] (1, '[0.02274007722735405,-0.008345323614776134,-0.05471900850534439,0.010659168474376202,-0.002194944303482771,0.031124766916036606,-0.03771605342626572, ... (21429 characters truncated) ... 5,0.02299375645816326,-0.026486752554774284,0.042601898312568665,-0.006127532571554184,0.010767790488898754,0.013987958431243896,0.03811592608690262]', 40)
+INFO [cached since 49.73s ago] (1, '[0.02274007722735405,-0.008345323614776134,-0.05471900850534439,0.010659168474376202,-0.002194944303482771,0.031124766916036606,-0.03771605342626572, ... (21429 characters truncated) ... 5,0.02299375645816326,-0.026486752554774284,0.042601898312568665,-0.006127532571554184,0.010767790488898754,0.013987958431243896,0.03811592608690262]', 40)
+2026-09-02 20:08:27,505 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+2026-09-02 20:08:27,506 INFO sqlalchemy.engine.Engine [cached since 49.71s ago] (8, 6, 9, 2, 3, 1, 7, 11, 4, 5, 10)
+INFO [cached since 49.71s ago] (8, 6, 9, 2, 3, 1, 7, 11, 4, 5, 10)
+Batches:   0%|          | 0/1 [00:00<?, ?it/s]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.87s/it]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.87s/it]
+2026-09-02 20:08:29,722 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:08:29,722 INFO sqlalchemy.engine.Engine [cached since 52s ago] (1, '[-0.017093300819396973,0.007357016671448946,0.030928511172533035,0.047538481652736664,0.025337081402540207,0.020599888637661934,-0.007866964675486088 ... (21411 characters truncated) ... 54,0.03485342115163803,-0.021562369540333748,0.035447657108306885,0.015236551873385906,-0.03179093450307846,0.05139312148094177,0.010074719786643982]', 40)
+INFO [cached since 52s ago] (1, '[-0.017093300819396973,0.007357016671448946,0.030928511172533035,0.047538481652736664,0.025337081402540207,0.020599888637661934,-0.007866964675486088 ... (21411 characters truncated) ... 54,0.03485342115163803,-0.021562369540333748,0.035447657108306885,0.015236551873385906,-0.03179093450307846,0.05139312148094177,0.010074719786643982]', 40)
+2026-09-02 20:08:29,768 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+2026-09-02 20:08:29,769 INFO sqlalchemy.engine.Engine [cached since 51.97s ago] (11, 7, 2, 5, 6, 8, 1, 9, 4, 3, 10)
+INFO [cached since 51.97s ago] (11, 7, 2, 5, 6, 8, 1, 9, 4, 3, 10)
+Batches:   0%|          | 0/1 [00:00<?, ?it/s]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.78s/it]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.78s/it]
+2026-09-02 20:08:31,873 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:08:31,874 INFO sqlalchemy.engine.Engine [cached since 54.15s ago] (1, '[0.03696300834417343,-0.03614092245697975,0.0168693196028471,-0.004712185822427273,-0.011358394287526608,0.016204075887799263,-0.006704905070364475,0 ... (21447 characters truncated) ... 389,0.023417768999934196,-0.01084006018936634,0.04828254133462906,0.017931945621967316,-0.03725483641028404,0.0333499051630497,-0.036055661737918854]', 40)
+INFO [cached since 54.15s ago] (1, '[0.03696300834417343,-0.03614092245697975,0.0168693196028471,-0.004712185822427273,-0.011358394287526608,0.016204075887799263,-0.006704905070364475,0 ... (21447 characters truncated) ... 389,0.023417768999934196,-0.01084006018936634,0.04828254133462906,0.017931945621967316,-0.03725483641028404,0.0333499051630497,-0.036055661737918854]', 40)
+2026-09-02 20:08:31,924 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+2026-09-02 20:08:31,925 INFO sqlalchemy.engine.Engine [cached since 54.13s ago] (4, 2, 8, 5, 3, 1, 6, 7, 9, 11, 10)
+INFO [cached since 54.13s ago] (4, 2, 8, 5, 3, 1, 6, 7, 9, 11, 10)
+Batches:   0%|          | 0/1 [00:00<?, ?it/s]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.78s/it]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.78s/it]
+2026-09-02 20:08:34,055 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:08:34,056 INFO sqlalchemy.engine.Engine [cached since 56.33s ago] (1, '[-0.012499012053012848,0.00749972416087985,0.019283320754766464,-0.010389682836830616,0.010248667560517788,0.043189290910959244,-0.02260066755115986, ... (21437 characters truncated) ... 4,0.046066589653491974,-0.054529476910829544,0.025018498301506042,0.03597933053970337,-0.04605881869792938,-0.00525126326829195,-0.02540760301053524]', 40)
+INFO [cached since 56.33s ago] (1, '[-0.012499012053012848,0.00749972416087985,0.019283320754766464,-0.010389682836830616,0.010248667560517788,0.043189290910959244,-0.02260066755115986, ... (21437 characters truncated) ... 4,0.046066589653491974,-0.054529476910829544,0.025018498301506042,0.03597933053970337,-0.04605881869792938,-0.00525126326829195,-0.02540760301053524]', 40)
+2026-09-02 20:08:34,104 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+2026-09-02 20:08:34,105 INFO sqlalchemy.engine.Engine [cached since 56.31s ago] (10, 1, 3, 2, 5, 4, 11, 6, 9, 8, 7)
+INFO [cached since 56.31s ago] (10, 1, 3, 2, 5, 4, 11, 6, 9, 8, 7)
+Batches:   0%|          | 0/1 [00:00<?, ?it/s]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.76s/it]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.76s/it]
+2026-09-02 20:08:36,217 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:08:36,218 INFO sqlalchemy.engine.Engine [cached since 58.49s ago] (1, '[-0.013496942818164825,0.010070533491671085,0.029234256595373154,-0.005901877302676439,0.016841070726513863,0.007834181189537048,-0.04920254275202751 ... (21449 characters truncated) ... 6,0.04609568789601326,-0.019725890830159187,0.05426512286067009,0.017248138785362244,-0.038985151797533035,0.05446736514568329,-0.014253173023462296]', 40)
+INFO [cached since 58.49s ago] (1, '[-0.013496942818164825,0.010070533491671085,0.029234256595373154,-0.005901877302676439,0.016841070726513863,0.007834181189537048,-0.04920254275202751 ... (21449 characters truncated) ... 6,0.04609568789601326,-0.019725890830159187,0.05426512286067009,0.017248138785362244,-0.038985151797533035,0.05446736514568329,-0.014253173023462296]', 40)
+2026-09-02 20:08:36,268 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+2026-09-02 20:08:36,268 INFO sqlalchemy.engine.Engine [cached since 58.47s ago] (7, 3, 11, 4, 2, 5, 1, 8, 6, 9, 10)
+INFO [cached since 58.47s ago] (7, 3, 11, 4, 2, 5, 1, 8, 6, 9, 10)
+Batches:   0%|          | 0/1 [00:00<?, ?it/s]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.87s/it]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.87s/it]
+2026-09-02 20:08:38,526 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:08:38,527 INFO sqlalchemy.engine.Engine [cached since 60.8s ago] (1, '[-0.0009147029486484826,0.02362222969532013,-0.007759505417197943,0.05419626832008362,-0.02320108748972416,0.02850905805826187,-0.05208272486925125,- ... (21412 characters truncated) ... ,-0.002497027860954404,-0.028788065537810326,0.06896986812353134,0.03142717108130455,0.011896882206201553,0.013499755412340164,-0.002303873421624303]', 40)
+INFO [cached since 60.8s ago] (1, '[-0.0009147029486484826,0.02362222969532013,-0.007759505417197943,0.05419626832008362,-0.02320108748972416,0.02850905805826187,-0.05208272486925125,- ... (21412 characters truncated) ... ,-0.002497027860954404,-0.028788065537810326,0.06896986812353134,0.03142717108130455,0.011896882206201553,0.013499755412340164,-0.002303873421624303]', 40)
+2026-09-02 20:08:38,576 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+2026-09-02 20:08:38,576 INFO sqlalchemy.engine.Engine [cached since 60.78s ago] (8, 2, 1, 5, 7, 3, 11, 4, 10, 6, 9)
+INFO [cached since 60.78s ago] (8, 2, 1, 5, 7, 3, 11, 4, 10, 6, 9)
+Batches:   0%|          | 0/1 [00:00<?, ?it/s]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.90s/it]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.90s/it]
+2026-09-02 20:08:40,728 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:08:40,728 INFO sqlalchemy.engine.Engine [cached since 63.01s ago] (1, '[0.02120913751423359,-0.028583550825715065,0.013005961664021015,-0.004734619054943323,-0.004981467965990305,0.041780099272727966,-0.01031111180782318 ... (21398 characters truncated) ... 37,0.04994196444749832,-0.012733802199363708,0.0251187551766634,0.017564548179507256,-0.015221738256514072,0.021901322528719902,0.044525954872369766]', 40)
+INFO [cached since 63.01s ago] (1, '[0.02120913751423359,-0.028583550825715065,0.013005961664021015,-0.004734619054943323,-0.004981467965990305,0.041780099272727966,-0.01031111180782318 ... (21398 characters truncated) ... 37,0.04994196444749832,-0.012733802199363708,0.0251187551766634,0.017564548179507256,-0.015221738256514072,0.021901322528719902,0.044525954872369766]', 40)
+2026-09-02 20:08:40,775 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+2026-09-02 20:08:40,776 INFO sqlalchemy.engine.Engine [cached since 62.98s ago] (8, 2, 11, 1, 5, 7, 3, 4, 10, 6, 9)
+INFO [cached since 62.98s ago] (8, 2, 11, 1, 5, 7, 3, 4, 10, 6, 9)
+Batches:   0%|          | 0/1 [00:00<?, ?it/s]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.71s/it]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.71s/it]
+2026-09-02 20:08:42,737 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:08:42,738 INFO sqlalchemy.engine.Engine [cached since 65.01s ago] (1, '[-0.008782056160271168,-0.014808617532253265,0.03269348666071892,0.005513905081897974,0.01590610109269619,0.00972871482372284,-0.034762974828481674,- ... (21401 characters truncated) ... 2,0.052635304629802704,-0.038561441004276276,0.02195364236831665,0.036143507808446884,-0.04133830964565277,-0.008207597769796848,0.01857796125113964]', 40)
+INFO [cached since 65.01s ago] (1, '[-0.008782056160271168,-0.014808617532253265,0.03269348666071892,0.005513905081897974,0.01590610109269619,0.00972871482372284,-0.034762974828481674,- ... (21401 characters truncated) ... 2,0.052635304629802704,-0.038561441004276276,0.02195364236831665,0.036143507808446884,-0.04133830964565277,-0.008207597769796848,0.01857796125113964]', 40)
+2026-09-02 20:08:42,787 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+2026-09-02 20:08:42,788 INFO sqlalchemy.engine.Engine [cached since 64.99s ago] (3, 2, 4, 5, 1, 11, 7, 8, 10, 9, 6)
+INFO [cached since 64.99s ago] (3, 2, 4, 5, 1, 11, 7, 8, 10, 9, 6)
+Batches:   0%|          | 0/1 [00:00<?, ?it/s]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.70s/it]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.70s/it]
+2026-09-02 20:08:44,792 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:08:44,792 INFO sqlalchemy.engine.Engine [cached since 67.07s ago] (1, '[0.05485863238573074,0.014668417163193226,5.0038794142892584e-05,0.033840078860521317,-0.01442920882254839,0.02580806240439415,-0.014275903813540936, ... (21458 characters truncated) ... -0.0022416317369788885,0.016767578199505806,0.01712971180677414,0.03697431460022926,0.00029593778890557587,0.02636447176337242,-0.010791474021971226]', 40)
+INFO [cached since 67.07s ago] (1, '[0.05485863238573074,0.014668417163193226,5.0038794142892584e-05,0.033840078860521317,-0.01442920882254839,0.02580806240439415,-0.014275903813540936, ... (21458 characters truncated) ... -0.0022416317369788885,0.016767578199505806,0.01712971180677414,0.03697431460022926,0.00029593778890557587,0.02636447176337242,-0.010791474021971226]', 40)
+2026-09-02 20:08:44,840 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+2026-09-02 20:08:44,840 INFO sqlalchemy.engine.Engine [cached since 67.04s ago] (8, 5, 7, 10, 11, 6, 2, 9, 4, 1, 3)
+INFO [cached since 67.04s ago] (8, 5, 7, 10, 11, 6, 2, 9, 4, 1, 3)
+Batches:   0%|          | 0/1 [00:00<?, ?it/s]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.66s/it]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.67s/it]
+2026-09-02 20:08:46,792 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:08:46,793 INFO sqlalchemy.engine.Engine [cached since 69.07s ago] (1, '[0.014091592282056808,0.0025982705410569906,-0.03499649465084076,-0.044615570455789566,4.235007145325653e-05,0.04406125843524933,-0.01408412028104066 ... (21406 characters truncated) ... 9,0.014570453204214573,-0.042663875967264175,0.043911710381507874,0.023188645020127296,0.012506750412285328,0.007272324059158564,0.01228539738804102]', 40)
+INFO [cached since 69.07s ago] (1, '[0.014091592282056808,0.0025982705410569906,-0.03499649465084076,-0.044615570455789566,4.235007145325653e-05,0.04406125843524933,-0.01408412028104066 ... (21406 characters truncated) ... 9,0.014570453204214573,-0.042663875967264175,0.043911710381507874,0.023188645020127296,0.012506750412285328,0.007272324059158564,0.01228539738804102]', 40)
+2026-09-02 20:08:46,839 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+2026-09-02 20:08:46,839 INFO sqlalchemy.engine.Engine [cached since 69.04s ago] (1, 2, 5, 10, 3, 11, 4, 6, 9, 8, 7)
+INFO [cached since 69.04s ago] (1, 2, 5, 10, 3, 11, 4, 6, 9, 8, 7)
+Batches:   0%|          | 0/1 [00:00<?, ?it/s]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.70s/it]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.70s/it]
+2026-09-02 20:08:48,853 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:08:48,853 INFO sqlalchemy.engine.Engine [cached since 71.13s ago] (1, '[0.015751946717500687,-0.005935197230428457,0.024168509989976883,-0.03702813386917114,0.016195327043533325,0.015846000984311104,-0.01729736290872097, ... (21405 characters truncated) ... 0.01754392497241497,0.011404015123844147,0.016513874754309654,-0.022119592875242233,-0.025030478835105896,0.042433205991983414,-0.046044979244470596]', 40)
+INFO [cached since 71.13s ago] (1, '[0.015751946717500687,-0.005935197230428457,0.024168509989976883,-0.03702813386917114,0.016195327043533325,0.015846000984311104,-0.01729736290872097, ... (21405 characters truncated) ... 0.01754392497241497,0.011404015123844147,0.016513874754309654,-0.022119592875242233,-0.025030478835105896,0.042433205991983414,-0.046044979244470596]', 40)
+2026-09-02 20:08:48,902 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+2026-09-02 20:08:48,903 INFO sqlalchemy.engine.Engine [cached since 71.11s ago] (6, 9, 5, 11, 1, 3, 2, 7, 8, 4, 10)
+INFO [cached since 71.11s ago] (6, 9, 5, 11, 1, 3, 2, 7, 8, 4, 10)
+Batches:   0%|          | 0/1 [00:00<?, ?it/s]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.67s/it]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.67s/it]
+2026-09-02 20:08:50,859 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:08:50,859 INFO sqlalchemy.engine.Engine [cached since 73.14s ago] (1, '[-0.013646932318806648,-0.007148718927055597,-0.04662883281707764,0.0034327388275414705,0.03373844549059868,0.0049906843341887,0.007196921389549971,0 ... (21436 characters truncated) ... 812,0.034957122057676315,0.0007323197787627578,0.01862388476729393,0.021773552522063255,0.01545310951769352,0.07627377659082413,0.047004830092191696]', 40)
+INFO [cached since 73.14s ago] (1, '[-0.013646932318806648,-0.007148718927055597,-0.04662883281707764,0.0034327388275414705,0.03373844549059868,0.0049906843341887,0.007196921389549971,0 ... (21436 characters truncated) ... 812,0.034957122057676315,0.0007323197787627578,0.01862388476729393,0.021773552522063255,0.01545310951769352,0.07627377659082413,0.047004830092191696]', 40)
+2026-09-02 20:08:50,906 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER, $6::INTEGER, $7::INTEGER, $8::INTEGER, $9::INTEGER, $10::INTEGER, $11::INTEGER)
+2026-09-02 20:08:50,907 INFO sqlalchemy.engine.Engine [cached since 73.11s ago] (11, 7, 1, 5, 3, 4, 2, 8, 6, 10, 9)
+INFO [cached since 73.11s ago] (11, 7, 1, 5, 3, 4, 2, 8, 6, 10, 9)
+Batches:   0%|          | 0/1 [00:00<?, ?it/s]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.67s/it]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.67s/it]
+2026-09-02 20:08:52,606 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO ROLLBACK
+INFO   top-1=90.62% top-3=100.00% top-5=100.00% MRR=0.9479 nDCG@5=0.9613
+INFO 开始评测：Reranker OFF ...
+2026-09-02 20:08:52,834 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+INFO BEGIN (implicit)
+2026-09-02 20:08:52,836 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.content 
+FROM chunks
+INFO SELECT chunks.id, chunks.content 
+FROM chunks
+2026-09-02 20:08:52,836 INFO sqlalchemy.engine.Engine [cached since 75.14s ago] ()
+INFO [cached since 75.14s ago] ()
+INFO BM25 索引构建完成，共 11 个分片
+2026-09-02 20:08:52,847 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:08:52,847 INFO sqlalchemy.engine.Engine [cached since 75.12s ago] (1, '[-0.014103427529335022,-0.031597163528203964,0.02244224026799202,-0.013812577351927757,0.020858600735664368,0.011959809809923172,-0.02077788673341274 ... (21421 characters truncated) ... -0.0013051723362877965,0.008810936473309994,0.005049832630902529,0.047977037727832794,-0.03964746743440628,-0.06410198658704758,0.029253289103507996]', 10)
+INFO [cached since 75.12s ago] (1, '[-0.014103427529335022,-0.031597163528203964,0.02244224026799202,-0.013812577351927757,0.020858600735664368,0.011959809809923172,-0.02077788673341274 ... (21421 characters truncated) ... -0.0013051723362877965,0.008810936473309994,0.005049832630902529,0.047977037727832794,-0.03964746743440628,-0.06410198658704758,0.029253289103507996]', 10)
+2026-09-02 20:08:52,895 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+2026-09-02 20:08:52,896 INFO sqlalchemy.engine.Engine [cached since 75.1s ago] (1, 3, 5, 6, 10)
+INFO [cached since 75.1s ago] (1, 3, 5, 6, 10)
+2026-09-02 20:08:53,143 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:08:53,144 INFO sqlalchemy.engine.Engine [cached since 75.42s ago] (1, '[0.022666174918413162,0.011515541933476925,0.0037995888851583004,0.006111002527177334,0.03815844655036926,0.03367939591407776,-0.04077677056193352,-0 ... (21410 characters truncated) ... ,0.07960030436515808,-0.0023127340245991945,0.05921495333313942,0.024237293750047684,-0.000919987796805799,0.014294486492872238,0.027487939223647118]', 10)
+INFO [cached since 75.42s ago] (1, '[0.022666174918413162,0.011515541933476925,0.0037995888851583004,0.006111002527177334,0.03815844655036926,0.03367939591407776,-0.04077677056193352,-0 ... (21410 characters truncated) ... ,0.07960030436515808,-0.0023127340245991945,0.05921495333313942,0.024237293750047684,-0.000919987796805799,0.014294486492872238,0.027487939223647118]', 10)
+2026-09-02 20:08:53,191 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+2026-09-02 20:08:53,192 INFO sqlalchemy.engine.Engine [cached since 75.39s ago] (3, 7, 11, 8, 4)
+INFO [cached since 75.39s ago] (3, 7, 11, 8, 4)
+2026-09-02 20:08:53,400 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:08:53,401 INFO sqlalchemy.engine.Engine [cached since 75.68s ago] (1, '[-0.00448428513482213,-0.02341405116021633,-0.041124019771814346,0.03818957507610321,-0.0262302216142416,-0.01244323793798685,-0.0322708822786808,-0. ... (21380 characters truncated) ... .042526569217443466,-0.0035616199020296335,0.021226869896054268,-0.03684006258845329,-0.022299375385046005,-0.025244997814297676,0.06702742725610733]', 10)
+INFO [cached since 75.68s ago] (1, '[-0.00448428513482213,-0.02341405116021633,-0.041124019771814346,0.03818957507610321,-0.0262302216142416,-0.01244323793798685,-0.0322708822786808,-0. ... (21380 characters truncated) ... .042526569217443466,-0.0035616199020296335,0.021226869896054268,-0.03684006258845329,-0.022299375385046005,-0.025244997814297676,0.06702742725610733]', 10)
+2026-09-02 20:08:53,451 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+2026-09-02 20:08:53,451 INFO sqlalchemy.engine.Engine [cached since 75.65s ago] (6, 9, 5, 7, 2)
+INFO [cached since 75.65s ago] (6, 9, 5, 7, 2)
+2026-09-02 20:08:53,677 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:08:53,678 INFO sqlalchemy.engine.Engine [cached since 75.95s ago] (1, '[0.016676224768161774,0.007492600474506617,-0.03774314746260643,0.0016515138559043407,0.011642700992524624,0.008821767754852772,-0.004929419606924057 ... (21431 characters truncated) ... 59,0.009591388516128063,-0.04532624036073685,0.01977774314582348,0.025981051847338676,-0.029389524832367897,0.01897074468433857,0.027526449412107468]', 10)
+INFO [cached since 75.95s ago] (1, '[0.016676224768161774,0.007492600474506617,-0.03774314746260643,0.0016515138559043407,0.011642700992524624,0.008821767754852772,-0.004929419606924057 ... (21431 characters truncated) ... 59,0.009591388516128063,-0.04532624036073685,0.01977774314582348,0.025981051847338676,-0.029389524832367897,0.01897074468433857,0.027526449412107468]', 10)
+2026-09-02 20:08:53,726 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+2026-09-02 20:08:53,727 INFO sqlalchemy.engine.Engine [cached since 75.93s ago] (6, 9, 11, 8, 10)
+INFO [cached since 75.93s ago] (6, 9, 11, 8, 10)
+2026-09-02 20:08:54,045 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:08:54,045 INFO sqlalchemy.engine.Engine [cached since 76.32s ago] (1, '[0.01570136845111847,-0.02504821866750717,0.019790738821029663,-0.06245475262403488,0.0007771599921397865,0.024735160171985626,-0.006640429608523846, ... (21394 characters truncated) ... 6,0.03692218288779259,-0.018162690103054047,0.012454219162464142,0.017253393307328224,-0.00719618983566761,-0.03559326007962227,0.030143851414322853]', 10)
+INFO [cached since 76.32s ago] (1, '[0.01570136845111847,-0.02504821866750717,0.019790738821029663,-0.06245475262403488,0.0007771599921397865,0.024735160171985626,-0.006640429608523846, ... (21394 characters truncated) ... 6,0.03692218288779259,-0.018162690103054047,0.012454219162464142,0.017253393307328224,-0.00719618983566761,-0.03559326007962227,0.030143851414322853]', 10)
+2026-09-02 20:08:54,095 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+2026-09-02 20:08:54,096 INFO sqlalchemy.engine.Engine [cached since 76.3s ago] (1, 2, 5, 4, 10)
+INFO [cached since 76.3s ago] (1, 2, 5, 4, 10)
+2026-09-02 20:08:54,345 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:08:54,345 INFO sqlalchemy.engine.Engine [cached since 76.62s ago] (1, '[-0.017210884019732475,0.006140338256955147,-0.00022504111984744668,-0.014795798808336258,0.013825166039168835,-0.0014320965856313705,-0.045775581151 ... (21394 characters truncated) ... -0.007573325652629137,0.024514999240636826,0.004442020319402218,0.0033168019726872444,0.0004441015771590173,0.004949675872921944,0.00823318213224411]', 10)
+INFO [cached since 76.62s ago] (1, '[-0.017210884019732475,0.006140338256955147,-0.00022504111984744668,-0.014795798808336258,0.013825166039168835,-0.0014320965856313705,-0.045775581151 ... (21394 characters truncated) ... -0.007573325652629137,0.024514999240636826,0.004442020319402218,0.0033168019726872444,0.0004441015771590173,0.004949675872921944,0.00823318213224411]', 10)
+2026-09-02 20:08:54,396 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+2026-09-02 20:08:54,396 INFO sqlalchemy.engine.Engine [cached since 76.6s ago] (5, 2, 11, 8, 7)
+INFO [cached since 76.6s ago] (5, 2, 11, 8, 7)
+2026-09-02 20:08:54,669 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:08:54,670 INFO sqlalchemy.engine.Engine [cached since 76.95s ago] (1, '[-0.004726620856672525,-0.00787863228470087,-0.003735656151548028,-0.007197556085884571,-0.006308557465672493,0.01913435198366642,-0.0252191815525293 ... (21483 characters truncated) ... ,0.026325305923819542,-0.03967135399580002,0.053147848695516586,0.05758119747042656,-0.06464670598506927,-0.0004451586864888668,-0.04791354760527611]', 10)
+INFO [cached since 76.95s ago] (1, '[-0.004726620856672525,-0.00787863228470087,-0.003735656151548028,-0.007197556085884571,-0.006308557465672493,0.01913435198366642,-0.0252191815525293 ... (21483 characters truncated) ... ,0.026325305923819542,-0.03967135399580002,0.053147848695516586,0.05758119747042656,-0.06464670598506927,-0.0004451586864888668,-0.04791354760527611]', 10)
+2026-09-02 20:08:54,718 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+2026-09-02 20:08:54,719 INFO sqlalchemy.engine.Engine [cached since 76.92s ago] (4, 2, 3, 5, 1)
+INFO [cached since 76.92s ago] (4, 2, 3, 5, 1)
+2026-09-02 20:08:54,972 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:08:54,973 INFO sqlalchemy.engine.Engine [cached since 77.25s ago] (1, '[0.02103651873767376,0.010908154770731926,-0.0175723135471344,-0.0343758761882782,0.00018220279889646918,0.057280588895082474,-0.011768531985580921,0 ... (21439 characters truncated) ... ,0.05446475371718407,-0.0666329562664032,0.006998126395046711,0.0033931508660316467,-0.04013105481863022,1.7263870176975615e-05,-0.04051501676440239]', 10)
+INFO [cached since 77.25s ago] (1, '[0.02103651873767376,0.010908154770731926,-0.0175723135471344,-0.0343758761882782,0.00018220279889646918,0.057280588895082474,-0.011768531985580921,0 ... (21439 characters truncated) ... ,0.05446475371718407,-0.0666329562664032,0.006998126395046711,0.0033931508660316467,-0.04013105481863022,1.7263870176975615e-05,-0.04051501676440239]', 10)
+2026-09-02 20:08:55,022 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+2026-09-02 20:08:55,023 INFO sqlalchemy.engine.Engine [cached since 77.23s ago] (4, 3, 5, 2, 8)
+INFO [cached since 77.23s ago] (4, 3, 5, 2, 8)
+2026-09-02 20:08:55,308 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:08:55,308 INFO sqlalchemy.engine.Engine [cached since 77.59s ago] (1, '[-0.006951477378606796,-0.004740750417113304,-0.0012777267256751657,0.014593773521482944,0.02063414826989174,0.014638257212936878,-0.0308810863643884 ... (21397 characters truncated) ... .01659533940255642,-0.019335487857460976,0.0032629140187054873,0.02683420293033123,-0.049596745520830154,0.033764492720365524,-0.0075938887894153595]', 10)
+INFO [cached since 77.59s ago] (1, '[-0.006951477378606796,-0.004740750417113304,-0.0012777267256751657,0.014593773521482944,0.02063414826989174,0.014638257212936878,-0.0308810863643884 ... (21397 characters truncated) ... .01659533940255642,-0.019335487857460976,0.0032629140187054873,0.02683420293033123,-0.049596745520830154,0.033764492720365524,-0.0075938887894153595]', 10)
+2026-09-02 20:08:55,358 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+2026-09-02 20:08:55,358 INFO sqlalchemy.engine.Engine [cached since 77.56s ago] (11, 7, 4, 5, 2)
+INFO [cached since 77.56s ago] (11, 7, 4, 5, 2)
+2026-09-02 20:08:55,619 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:08:55,619 INFO sqlalchemy.engine.Engine [cached since 77.9s ago] (1, '[0.015797065570950508,0.001936421263962984,0.017595229670405388,-0.03914903104305267,-0.015890076756477356,-0.014267651364207268,-0.07374683767557144 ... (21437 characters truncated) ... 18982857465744,-0.014273497276008129,0.0077714333310723305,0.0025651606265455484,-0.025572260841727257,-0.00016687606694176793,-0.011247829534113407]', 10)
+INFO [cached since 77.9s ago] (1, '[0.015797065570950508,0.001936421263962984,0.017595229670405388,-0.03914903104305267,-0.015890076756477356,-0.014267651364207268,-0.07374683767557144 ... (21437 characters truncated) ... 18982857465744,-0.014273497276008129,0.0077714333310723305,0.0025651606265455484,-0.025572260841727257,-0.00016687606694176793,-0.011247829534113407]', 10)
+2026-09-02 20:08:55,666 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+2026-09-02 20:08:55,667 INFO sqlalchemy.engine.Engine [cached since 77.87s ago] (3, 7, 5, 11, 9)
+INFO [cached since 77.87s ago] (3, 7, 5, 11, 9)
+2026-09-02 20:08:55,921 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:08:55,922 INFO sqlalchemy.engine.Engine [cached since 78.2s ago] (1, '[-0.008212708868086338,0.02628360502421856,0.03252653777599335,0.0010141130769625306,-0.0021309531293809414,0.01626516692340374,-0.013075730763375759 ... (21370 characters truncated) ... 3,0.010912833735346794,0.0352289155125618,0.014342759735882282,-0.023370791226625443,-0.018457774072885513,0.03761696070432663,-0.021790536120533943]', 10)
+INFO [cached since 78.2s ago] (1, '[-0.008212708868086338,0.02628360502421856,0.03252653777599335,0.0010141130769625306,-0.0021309531293809414,0.01626516692340374,-0.013075730763375759 ... (21370 characters truncated) ... 3,0.010912833735346794,0.0352289155125618,0.014342759735882282,-0.023370791226625443,-0.018457774072885513,0.03761696070432663,-0.021790536120533943]', 10)
+2026-09-02 20:08:55,970 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+2026-09-02 20:08:55,970 INFO sqlalchemy.engine.Engine [cached since 78.17s ago] (6, 9, 10, 5, 2)
+INFO [cached since 78.17s ago] (6, 9, 10, 5, 2)
+2026-09-02 20:08:56,255 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:08:56,256 INFO sqlalchemy.engine.Engine [cached since 78.53s ago] (1, '[0.028593242168426514,-0.002756106434389949,0.012830527499318123,-0.02955659292638302,0.012335706502199173,-0.003519047750160098,-0.06168071925640106 ... (21408 characters truncated) ... .040277719497680664,0.015357831493020058,0.015209893696010113,0.0001582329859957099,-0.03512539342045784,-0.004726542625576258,-0.007767890579998493]', 10)
+INFO [cached since 78.53s ago] (1, '[0.028593242168426514,-0.002756106434389949,0.012830527499318123,-0.02955659292638302,0.012335706502199173,-0.003519047750160098,-0.06168071925640106 ... (21408 characters truncated) ... .040277719497680664,0.015357831493020058,0.015209893696010113,0.0001582329859957099,-0.03512539342045784,-0.004726542625576258,-0.007767890579998493]', 10)
+2026-09-02 20:08:56,303 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+2026-09-02 20:08:56,304 INFO sqlalchemy.engine.Engine [cached since 78.51s ago] (7, 11, 8, 3, 2)
+INFO [cached since 78.51s ago] (7, 11, 8, 3, 2)
+2026-09-02 20:08:56,556 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:08:56,556 INFO sqlalchemy.engine.Engine [cached since 78.83s ago] (1, '[0.007837790995836258,-0.010192273184657097,0.04291950911283493,-0.06084517017006874,0.02562008984386921,0.002014374127611518,-0.012696952559053898,- ... (21369 characters truncated) ... ,0.029995813965797424,0.0007413410348817706,0.058243341743946075,0.034039516001939774,-0.02912517823278904,0.008813566528260708,-0.05534978583455086]', 10)
+INFO [cached since 78.83s ago] (1, '[0.007837790995836258,-0.010192273184657097,0.04291950911283493,-0.06084517017006874,0.02562008984386921,0.002014374127611518,-0.012696952559053898,- ... (21369 characters truncated) ... ,0.029995813965797424,0.0007413410348817706,0.058243341743946075,0.034039516001939774,-0.02912517823278904,0.008813566528260708,-0.05534978583455086]', 10)
+2026-09-02 20:08:56,606 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+2026-09-02 20:08:56,606 INFO sqlalchemy.engine.Engine [cached since 78.81s ago] (3, 4, 2, 8, 7)
+INFO [cached since 78.81s ago] (3, 4, 2, 8, 7)
+2026-09-02 20:08:56,825 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:08:56,825 INFO sqlalchemy.engine.Engine [cached since 79.1s ago] (1, '[-0.030476771295070648,0.010922943241894245,-0.0293040219694376,-0.009495114907622337,0.02844998799264431,0.023535529151558876,0.04560091719031334,0. ... (21365 characters truncated) ... 014038687571883202,0.02336769364774227,-0.0025702884886413813,-0.01942550018429756,-0.027127277106046677,-0.0031785238534212112,-0.03636745363473892]', 10)
+INFO [cached since 79.1s ago] (1, '[-0.030476771295070648,0.010922943241894245,-0.0293040219694376,-0.009495114907622337,0.02844998799264431,0.023535529151558876,0.04560091719031334,0. ... (21365 characters truncated) ... 014038687571883202,0.02336769364774227,-0.0025702884886413813,-0.01942550018429756,-0.027127277106046677,-0.0031785238534212112,-0.03636745363473892]', 10)
+2026-09-02 20:08:56,878 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+2026-09-02 20:08:56,879 INFO sqlalchemy.engine.Engine [cached since 79.08s ago] (5, 2, 3, 7, 4)
+INFO [cached since 79.08s ago] (5, 2, 3, 7, 4)
+2026-09-02 20:08:57,159 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:08:57,159 INFO sqlalchemy.engine.Engine [cached since 79.44s ago] (1, '[0.010142235085368156,0.022614797577261925,-0.03257683292031288,-0.0161764994263649,0.001508963294327259,0.038387056440114975,0.011363605968654156,-0 ... (21383 characters truncated) ... 484,0.014365392737090588,-0.008650718256831169,0.019801065325737,0.01812245137989521,-0.014469748362898827,0.002679233206436038,0.010894722305238247]', 10)
+INFO [cached since 79.44s ago] (1, '[0.010142235085368156,0.022614797577261925,-0.03257683292031288,-0.0161764994263649,0.001508963294327259,0.038387056440114975,0.011363605968654156,-0 ... (21383 characters truncated) ... 484,0.014365392737090588,-0.008650718256831169,0.019801065325737,0.01812245137989521,-0.014469748362898827,0.002679233206436038,0.010894722305238247]', 10)
+2026-09-02 20:08:57,205 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+2026-09-02 20:08:57,206 INFO sqlalchemy.engine.Engine [cached since 79.41s ago] (4, 1, 5, 7, 6)
+INFO [cached since 79.41s ago] (4, 1, 5, 7, 6)
+2026-09-02 20:08:57,469 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:08:57,470 INFO sqlalchemy.engine.Engine [cached since 79.75s ago] (1, '[-0.009821627289056778,0.03008163720369339,0.007182343862950802,0.00622017914429307,-0.027602750808000565,0.00509235356003046,-0.014609500765800476,- ... (21357 characters truncated) ... 660683,-0.0299054067581892,0.03432711586356163,0.058742839843034744,-0.05721811205148697,-0.00447194604203105,0.0436515286564827,-0.0172920823097229]', 10)
+INFO [cached since 79.75s ago] (1, '[-0.009821627289056778,0.03008163720369339,0.007182343862950802,0.00622017914429307,-0.027602750808000565,0.00509235356003046,-0.014609500765800476,- ... (21357 characters truncated) ... 660683,-0.0299054067581892,0.03432711586356163,0.058742839843034744,-0.05721811205148697,-0.00447194604203105,0.0436515286564827,-0.0172920823097229]', 10)
+2026-09-02 20:08:57,519 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+2026-09-02 20:08:57,519 INFO sqlalchemy.engine.Engine [cached since 79.72s ago] (6, 9, 7, 11, 10)
+INFO [cached since 79.72s ago] (6, 9, 7, 11, 10)
+2026-09-02 20:08:57,813 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:08:57,814 INFO sqlalchemy.engine.Engine [cached since 80.09s ago] (1, '[0.0008207097998820245,-0.005227094981819391,0.008584193885326385,-0.009971236810088158,0.03484637290239334,0.04951201006770134,0.003905218094587326, ... (21368 characters truncated) ... 0020382488146424294,-0.0011170151410624385,0.00982050970196724,0.005839132703840733,-0.014315381646156311,0.0031608990393579006,-0.08503306657075882]', 10)
+INFO [cached since 80.09s ago] (1, '[0.0008207097998820245,-0.005227094981819391,0.008584193885326385,-0.009971236810088158,0.03484637290239334,0.04951201006770134,0.003905218094587326, ... (21368 characters truncated) ... 0020382488146424294,-0.0011170151410624385,0.00982050970196724,0.005839132703840733,-0.014315381646156311,0.0031608990393579006,-0.08503306657075882]', 10)
+2026-09-02 20:08:57,863 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+2026-09-02 20:08:57,864 INFO sqlalchemy.engine.Engine [cached since 80.07s ago] (8, 5, 7, 4, 1)
+INFO [cached since 80.07s ago] (8, 5, 7, 4, 1)
+2026-09-02 20:08:58,136 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:08:58,137 INFO sqlalchemy.engine.Engine [cached since 80.41s ago] (1, '[0.006226737983524799,-0.035788893699645996,-0.015238728374242783,-0.008452916517853737,0.04926079884171486,0.03373037651181221,0.026887383311986923, ... (21382 characters truncated) ... 0.07169319689273834,-0.009047486819326878,-0.01665106974542141,-0.0030607962980866432,-0.03690392151474953,0.010062869638204575,-0.03071814589202404]', 10)
+INFO [cached since 80.41s ago] (1, '[0.006226737983524799,-0.035788893699645996,-0.015238728374242783,-0.008452916517853737,0.04926079884171486,0.03373037651181221,0.026887383311986923, ... (21382 characters truncated) ... 0.07169319689273834,-0.009047486819326878,-0.01665106974542141,-0.0030607962980866432,-0.03690392151474953,0.010062869638204575,-0.03071814589202404]', 10)
+2026-09-02 20:08:58,186 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+2026-09-02 20:08:58,187 INFO sqlalchemy.engine.Engine [cached since 80.39s ago] (7, 8, 5, 3, 11)
+INFO [cached since 80.39s ago] (7, 8, 5, 3, 11)
+2026-09-02 20:08:58,421 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:08:58,421 INFO sqlalchemy.engine.Engine [cached since 80.7s ago] (1, '[0.00910661555826664,0.020182013511657715,0.013488635420799255,0.03468405455350876,0.034319717437028885,0.0238882377743721,0.00926432479172945,-0.035 ... (21375 characters truncated) ... ,-0.016214091330766678,0.004408878739923239,0.061861053109169006,0.008398277685046196,-0.020719101652503014,0.01763160713016987,-0.09027563780546188]', 10)
+INFO [cached since 80.7s ago] (1, '[0.00910661555826664,0.020182013511657715,0.013488635420799255,0.03468405455350876,0.034319717437028885,0.0238882377743721,0.00926432479172945,-0.035 ... (21375 characters truncated) ... ,-0.016214091330766678,0.004408878739923239,0.061861053109169006,0.008398277685046196,-0.020719101652503014,0.01763160713016987,-0.09027563780546188]', 10)
+2026-09-02 20:08:58,471 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+2026-09-02 20:08:58,472 INFO sqlalchemy.engine.Engine [cached since 80.67s ago] (4, 3, 5, 1, 2)
+INFO [cached since 80.67s ago] (4, 3, 5, 1, 2)
+2026-09-02 20:08:58,739 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:08:58,739 INFO sqlalchemy.engine.Engine [cached since 81.02s ago] (1, '[0.0076356190256774426,-0.02708466351032257,0.03306051343679428,-0.028446335345506668,0.05179211497306824,0.044032588601112366,-0.017865393310785294, ... (21433 characters truncated) ... ,0.04075803607702255,0.004365490283817053,0.011243324726819992,-0.008681219071149826,-0.0010915433522313833,-0.0202208012342453,-0.01714521273970604]', 10)
+INFO [cached since 81.02s ago] (1, '[0.0076356190256774426,-0.02708466351032257,0.03306051343679428,-0.028446335345506668,0.05179211497306824,0.044032588601112366,-0.017865393310785294, ... (21433 characters truncated) ... ,0.04075803607702255,0.004365490283817053,0.011243324726819992,-0.008681219071149826,-0.0010915433522313833,-0.0202208012342453,-0.01714521273970604]', 10)
+2026-09-02 20:08:58,786 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+2026-09-02 20:08:58,786 INFO sqlalchemy.engine.Engine [cached since 80.99s ago] (5, 1, 8, 7, 3)
+INFO [cached since 80.99s ago] (5, 1, 8, 7, 3)
+2026-09-02 20:08:59,093 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:08:59,094 INFO sqlalchemy.engine.Engine [cached since 81.37s ago] (1, '[0.02274007722735405,-0.008345323614776134,-0.05471900850534439,0.010659168474376202,-0.002194944303482771,0.031124766916036606,-0.03771605342626572, ... (21429 characters truncated) ... 5,0.02299375645816326,-0.026486752554774284,0.042601898312568665,-0.006127532571554184,0.010767790488898754,0.013987958431243896,0.03811592608690262]', 10)
+INFO [cached since 81.37s ago] (1, '[0.02274007722735405,-0.008345323614776134,-0.05471900850534439,0.010659168474376202,-0.002194944303482771,0.031124766916036606,-0.03771605342626572, ... (21429 characters truncated) ... 5,0.02299375645816326,-0.026486752554774284,0.042601898312568665,-0.006127532571554184,0.010767790488898754,0.013987958431243896,0.03811592608690262]', 10)
+2026-09-02 20:08:59,141 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+2026-09-02 20:08:59,142 INFO sqlalchemy.engine.Engine [cached since 81.35s ago] (8, 6, 9, 2, 3)
+INFO [cached since 81.35s ago] (8, 6, 9, 2, 3)
+2026-09-02 20:08:59,453 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:08:59,453 INFO sqlalchemy.engine.Engine [cached since 81.73s ago] (1, '[-0.017093300819396973,0.007357016671448946,0.030928511172533035,0.047538481652736664,0.025337081402540207,0.020599888637661934,-0.007866964675486088 ... (21411 characters truncated) ... 54,0.03485342115163803,-0.021562369540333748,0.035447657108306885,0.015236551873385906,-0.03179093450307846,0.05139312148094177,0.010074719786643982]', 10)
+INFO [cached since 81.73s ago] (1, '[-0.017093300819396973,0.007357016671448946,0.030928511172533035,0.047538481652736664,0.025337081402540207,0.020599888637661934,-0.007866964675486088 ... (21411 characters truncated) ... 54,0.03485342115163803,-0.021562369540333748,0.035447657108306885,0.015236551873385906,-0.03179093450307846,0.05139312148094177,0.010074719786643982]', 10)
+2026-09-02 20:08:59,502 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+2026-09-02 20:08:59,503 INFO sqlalchemy.engine.Engine [cached since 81.71s ago] (11, 7, 2, 5, 6)
+INFO [cached since 81.71s ago] (11, 7, 2, 5, 6)
+2026-09-02 20:08:59,795 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:08:59,796 INFO sqlalchemy.engine.Engine [cached since 82.07s ago] (1, '[0.03696300834417343,-0.03614092245697975,0.0168693196028471,-0.004712185822427273,-0.011358394287526608,0.016204075887799263,-0.006704905070364475,0 ... (21447 characters truncated) ... 389,0.023417768999934196,-0.01084006018936634,0.04828254133462906,0.017931945621967316,-0.03725483641028404,0.0333499051630497,-0.036055661737918854]', 10)
+INFO [cached since 82.07s ago] (1, '[0.03696300834417343,-0.03614092245697975,0.0168693196028471,-0.004712185822427273,-0.011358394287526608,0.016204075887799263,-0.006704905070364475,0 ... (21447 characters truncated) ... 389,0.023417768999934196,-0.01084006018936634,0.04828254133462906,0.017931945621967316,-0.03725483641028404,0.0333499051630497,-0.036055661737918854]', 10)
+2026-09-02 20:08:59,846 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+2026-09-02 20:08:59,847 INFO sqlalchemy.engine.Engine [cached since 82.05s ago] (4, 2, 8, 5, 3)
+INFO [cached since 82.05s ago] (4, 2, 8, 5, 3)
+2026-09-02 20:09:00,145 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:09:00,146 INFO sqlalchemy.engine.Engine [cached since 82.42s ago] (1, '[-0.012499012053012848,0.00749972416087985,0.019283320754766464,-0.010389682836830616,0.010248667560517788,0.043189290910959244,-0.02260066755115986, ... (21437 characters truncated) ... 4,0.046066589653491974,-0.054529476910829544,0.025018498301506042,0.03597933053970337,-0.04605881869792938,-0.00525126326829195,-0.02540760301053524]', 10)
+INFO [cached since 82.42s ago] (1, '[-0.012499012053012848,0.00749972416087985,0.019283320754766464,-0.010389682836830616,0.010248667560517788,0.043189290910959244,-0.02260066755115986, ... (21437 characters truncated) ... 4,0.046066589653491974,-0.054529476910829544,0.025018498301506042,0.03597933053970337,-0.04605881869792938,-0.00525126326829195,-0.02540760301053524]', 10)
+2026-09-02 20:09:00,193 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+2026-09-02 20:09:00,194 INFO sqlalchemy.engine.Engine [cached since 82.4s ago] (10, 1, 3, 2, 5)
+INFO [cached since 82.4s ago] (10, 1, 3, 2, 5)
+2026-09-02 20:09:00,509 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:09:00,509 INFO sqlalchemy.engine.Engine [cached since 82.79s ago] (1, '[-0.013496942818164825,0.010070533491671085,0.029234256595373154,-0.005901877302676439,0.016841070726513863,0.007834181189537048,-0.04920254275202751 ... (21449 characters truncated) ... 6,0.04609568789601326,-0.019725890830159187,0.05426512286067009,0.017248138785362244,-0.038985151797533035,0.05446736514568329,-0.014253173023462296]', 10)
+INFO [cached since 82.79s ago] (1, '[-0.013496942818164825,0.010070533491671085,0.029234256595373154,-0.005901877302676439,0.016841070726513863,0.007834181189537048,-0.04920254275202751 ... (21449 characters truncated) ... 6,0.04609568789601326,-0.019725890830159187,0.05426512286067009,0.017248138785362244,-0.038985151797533035,0.05446736514568329,-0.014253173023462296]', 10)
+2026-09-02 20:09:00,556 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+2026-09-02 20:09:00,556 INFO sqlalchemy.engine.Engine [cached since 82.76s ago] (7, 3, 11, 4, 2)
+INFO [cached since 82.76s ago] (7, 3, 11, 4, 2)
+2026-09-02 20:09:00,849 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:09:00,849 INFO sqlalchemy.engine.Engine [cached since 83.13s ago] (1, '[-0.0009147029486484826,0.02362222969532013,-0.007759505417197943,0.05419626832008362,-0.02320108748972416,0.02850905805826187,-0.05208272486925125,- ... (21412 characters truncated) ... ,-0.002497027860954404,-0.028788065537810326,0.06896986812353134,0.03142717108130455,0.011896882206201553,0.013499755412340164,-0.002303873421624303]', 10)
+INFO [cached since 83.13s ago] (1, '[-0.0009147029486484826,0.02362222969532013,-0.007759505417197943,0.05419626832008362,-0.02320108748972416,0.02850905805826187,-0.05208272486925125,- ... (21412 characters truncated) ... ,-0.002497027860954404,-0.028788065537810326,0.06896986812353134,0.03142717108130455,0.011896882206201553,0.013499755412340164,-0.002303873421624303]', 10)
+2026-09-02 20:09:00,898 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+2026-09-02 20:09:00,898 INFO sqlalchemy.engine.Engine [cached since 83.1s ago] (8, 2, 1, 5, 7)
+INFO [cached since 83.1s ago] (8, 2, 1, 5, 7)
+2026-09-02 20:09:01,170 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:09:01,171 INFO sqlalchemy.engine.Engine [cached since 83.45s ago] (1, '[0.02120913751423359,-0.028583550825715065,0.013005961664021015,-0.004734619054943323,-0.004981467965990305,0.041780099272727966,-0.01031111180782318 ... (21398 characters truncated) ... 37,0.04994196444749832,-0.012733802199363708,0.0251187551766634,0.017564548179507256,-0.015221738256514072,0.021901322528719902,0.044525954872369766]', 10)
+INFO [cached since 83.45s ago] (1, '[0.02120913751423359,-0.028583550825715065,0.013005961664021015,-0.004734619054943323,-0.004981467965990305,0.041780099272727966,-0.01031111180782318 ... (21398 characters truncated) ... 37,0.04994196444749832,-0.012733802199363708,0.0251187551766634,0.017564548179507256,-0.015221738256514072,0.021901322528719902,0.044525954872369766]', 10)
+2026-09-02 20:09:01,218 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+2026-09-02 20:09:01,218 INFO sqlalchemy.engine.Engine [cached since 83.42s ago] (8, 2, 11, 1, 5)
+INFO [cached since 83.42s ago] (8, 2, 11, 1, 5)
+2026-09-02 20:09:01,504 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:09:01,505 INFO sqlalchemy.engine.Engine [cached since 83.78s ago] (1, '[-0.008782056160271168,-0.014808617532253265,0.03269348666071892,0.005513905081897974,0.01590610109269619,0.00972871482372284,-0.034762974828481674,- ... (21401 characters truncated) ... 2,0.052635304629802704,-0.038561441004276276,0.02195364236831665,0.036143507808446884,-0.04133830964565277,-0.008207597769796848,0.01857796125113964]', 10)
+INFO [cached since 83.78s ago] (1, '[-0.008782056160271168,-0.014808617532253265,0.03269348666071892,0.005513905081897974,0.01590610109269619,0.00972871482372284,-0.034762974828481674,- ... (21401 characters truncated) ... 2,0.052635304629802704,-0.038561441004276276,0.02195364236831665,0.036143507808446884,-0.04133830964565277,-0.008207597769796848,0.01857796125113964]', 10)
+2026-09-02 20:09:01,554 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+2026-09-02 20:09:01,555 INFO sqlalchemy.engine.Engine [cached since 83.76s ago] (3, 2, 4, 5, 1)
+INFO [cached since 83.76s ago] (3, 2, 4, 5, 1)
+2026-09-02 20:09:01,835 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:09:01,836 INFO sqlalchemy.engine.Engine [cached since 84.11s ago] (1, '[0.05485863238573074,0.014668417163193226,5.0038794142892584e-05,0.033840078860521317,-0.01442920882254839,0.02580806240439415,-0.014275903813540936, ... (21458 characters truncated) ... -0.0022416317369788885,0.016767578199505806,0.01712971180677414,0.03697431460022926,0.00029593778890557587,0.02636447176337242,-0.010791474021971226]', 10)
+INFO [cached since 84.11s ago] (1, '[0.05485863238573074,0.014668417163193226,5.0038794142892584e-05,0.033840078860521317,-0.01442920882254839,0.02580806240439415,-0.014275903813540936, ... (21458 characters truncated) ... -0.0022416317369788885,0.016767578199505806,0.01712971180677414,0.03697431460022926,0.00029593778890557587,0.02636447176337242,-0.010791474021971226]', 10)
+2026-09-02 20:09:01,881 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+2026-09-02 20:09:01,881 INFO sqlalchemy.engine.Engine [cached since 84.08s ago] (8, 5, 7, 10, 11)
+INFO [cached since 84.08s ago] (8, 5, 7, 10, 11)
+2026-09-02 20:09:02,183 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:09:02,183 INFO sqlalchemy.engine.Engine [cached since 84.46s ago] (1, '[0.014091592282056808,0.0025982705410569906,-0.03499649465084076,-0.044615570455789566,4.235007145325653e-05,0.04406125843524933,-0.01408412028104066 ... (21406 characters truncated) ... 9,0.014570453204214573,-0.042663875967264175,0.043911710381507874,0.023188645020127296,0.012506750412285328,0.007272324059158564,0.01228539738804102]', 10)
+INFO [cached since 84.46s ago] (1, '[0.014091592282056808,0.0025982705410569906,-0.03499649465084076,-0.044615570455789566,4.235007145325653e-05,0.04406125843524933,-0.01408412028104066 ... (21406 characters truncated) ... 9,0.014570453204214573,-0.042663875967264175,0.043911710381507874,0.023188645020127296,0.012506750412285328,0.007272324059158564,0.01228539738804102]', 10)
+2026-09-02 20:09:02,229 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+2026-09-02 20:09:02,230 INFO sqlalchemy.engine.Engine [cached since 84.43s ago] (1, 2, 5, 10, 3)
+INFO [cached since 84.43s ago] (1, 2, 5, 10, 3)
+2026-09-02 20:09:02,527 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:09:02,528 INFO sqlalchemy.engine.Engine [cached since 84.8s ago] (1, '[0.015751946717500687,-0.005935197230428457,0.024168509989976883,-0.03702813386917114,0.016195327043533325,0.015846000984311104,-0.01729736290872097, ... (21405 characters truncated) ... 0.01754392497241497,0.011404015123844147,0.016513874754309654,-0.022119592875242233,-0.025030478835105896,0.042433205991983414,-0.046044979244470596]', 10)
+INFO [cached since 84.8s ago] (1, '[0.015751946717500687,-0.005935197230428457,0.024168509989976883,-0.03702813386917114,0.016195327043533325,0.015846000984311104,-0.01729736290872097, ... (21405 characters truncated) ... 0.01754392497241497,0.011404015123844147,0.016513874754309654,-0.022119592875242233,-0.025030478835105896,0.042433205991983414,-0.046044979244470596]', 10)
+2026-09-02 20:09:02,577 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+2026-09-02 20:09:02,578 INFO sqlalchemy.engine.Engine [cached since 84.78s ago] (6, 9, 5, 11, 1)
+INFO [cached since 84.78s ago] (6, 9, 5, 11, 1)
+2026-09-02 20:09:02,826 INFO sqlalchemy.engine.Engine SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+INFO SELECT chunks.id, $1::INTEGER - (chunks.embedding <=> $2) AS similarity 
+FROM chunks 
+WHERE chunks.embedding IS NOT NULL ORDER BY chunks.embedding <=> $2 
+ LIMIT $3::INTEGER
+2026-09-02 20:09:02,827 INFO sqlalchemy.engine.Engine [cached since 85.1s ago] (1, '[-0.013646932318806648,-0.007148718927055597,-0.04662883281707764,0.0034327388275414705,0.03373844549059868,0.0049906843341887,0.007196921389549971,0 ... (21436 characters truncated) ... 812,0.034957122057676315,0.0007323197787627578,0.01862388476729393,0.021773552522063255,0.01545310951769352,0.07627377659082413,0.047004830092191696]', 10)
+INFO [cached since 85.1s ago] (1, '[-0.013646932318806648,-0.007148718927055597,-0.04662883281707764,0.0034327388275414705,0.03373844549059868,0.0049906843341887,0.007196921389549971,0 ... (21436 characters truncated) ... 812,0.034957122057676315,0.0007323197787627578,0.01862388476729393,0.021773552522063255,0.01545310951769352,0.07627377659082413,0.047004830092191696]', 10)
+2026-09-02 20:09:02,874 INFO sqlalchemy.engine.Engine SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+INFO SELECT chunks.id, chunks.document_id, chunks.chunk_index, chunks.content, chunks.embedding, chunks.metadata, chunks.token_count, chunks.created_at, documents.title, documents.filename 
+FROM chunks JOIN documents ON chunks.document_id = documents.id 
+WHERE chunks.id IN ($1::INTEGER, $2::INTEGER, $3::INTEGER, $4::INTEGER, $5::INTEGER)
+2026-09-02 20:09:02,875 INFO sqlalchemy.engine.Engine [cached since 85.08s ago] (11, 7, 1, 5, 3)
+INFO [cached since 85.08s ago] (11, 7, 1, 5, 3)
+2026-09-02 20:09:02,881 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO ROLLBACK
+INFO   top-1=81.25% top-3=100.00% top-5=100.00% MRR=0.8906 nDCG@5=0.9185
+INFO 结果已写入 D:\agentic-rag-system\backend\output\eval_result.md
+# 检索评测对比：Reranker 开 vs 关
+
+- 评测集规模：32 条（基线直配 + 同义改写 + 跨语言 + 多主题干扰 + 反向否定）
+- 指标定义：top-k 命中率 = 期望关键词出现在前 k 个结果中的比例；MRR = 1/首个命中排名 的平均值；nDCG@5 = 二值相关性（命中=1）下的归一化折损累计增益
+
+## 逐条结果
+
+| # | 类别 | 查询 | 期望关键词 | Reranker ON | Reranker OFF |
+|---|---|---|---|---|---|
+| 1 | 基线直配 | What does RAG combine to ground its answers? | `combines a retrieval system with a large language model` | ✓@1 | ✓@1 |
+| 2 | 基线直配 | Which PostgreSQL extension enables vector search? | `pgvector extension` | ✓@1 | ✓@1 |
+| 3 | 基线直配 | What is CUDA? | `CUDA is the primary programming platform` | ✓@1 | ✓@1 |
+| 4 | 基线直配 | What do tensor cores accelerate? | `Tensor cores specialize in accelerating matrix multiplication` | ✓@1 | ✓@1 |
+| 5 | 同义改写 | How does RAG anchor its answers in external knowledge rather than the model's own parameters? | `grounded in an external knowledge base` | ✓@1 | ✓@1 |
+| 6 | 同义改写 | What turns a user's question into a numerical vector before similarity matching? | `converts the user query into a dense vector` | ✓@1 | ✓@2 |
+| 7 | 同义改写 | How should a document be divided so each piece keeps its meaning? | `heading and section boundaries` | ✓@3 | ✓@3 |
+| 8 | 同义改写 | Why does every retrieved passage carry its origin and location? | `trace the source document` | ✓@1 | ✓@1 |
+| 9 | 同义改写 | How is a raw file transformed into searchable high-dimensional vectors? | `embedding each chunk into a high dimensional vector` | ✓@1 | ✓@3 |
+| 10 | 同义改写 | Which distance operators let stored vectors be matched by angle or dot product? | `cosine distance and inner product` | ✓@1 | ✓@1 |
+| 11 | 同义改写 | How can deep learning training cut memory and speed up using lower precision numbers? | `FP16 and BF16` | ✓@1 | ✓@1 |
+| 12 | 同义改写 | What kind of vector search trades a little recall for much faster lookups? | `approximate nearest neighbor search with good recall` | ✓@1 | ✓@1 |
+| 13 | 跨语言 | 如何分块更有利于检索质量？ | `heading and section boundaries` | ✓@1 | ✓@1 |
+| 14 | 跨语言 | 检索时怎样把用户问题转成向量？ | `converts the user query into a dense vector` | ✓@1 | ✓@2 |
+| 15 | 跨语言 | 为什么每个分片都要附加元数据？ | `trace the source document` | ✓@1 | ✓@1 |
+| 16 | 跨语言 | 哪个硬件平台是深度学习的主要编程平台？ | `CUDA is the primary programming platform` | ✓@1 | ✓@1 |
+| 17 | 跨语言 | 混合检索是如何合并稀疏检索与稠密检索的排序结果的？ | `Reciprocal rank fusion` | ✓@1 | ✓@1 |
+| 18 | 跨语言 | 哪种图索引能提供快速的近似最近邻检索？ | `HNSW is a graph-based index` | ✓@1 | ✓@1 |
+| 19 | 跨语言 | 文档摄入管线包含哪三个阶段？ | `three stages` | ✓@1 | ✓@1 |
+| 20 | 跨语言 | 为什么混合检索能同时处理生僻专有名词和语义相似？ | `exact keyword matching for rare terms and proper nouns` | ✓@1 | ✓@3 |
+| 21 | 多主题干扰 | Hybrid search fuses BM25 with dense retrieval — does it also rely on GPU tensor cores? | `Reciprocal rank fusion merges both ranked lists` | ✓@1 | ✓@1 |
+| 22 | 多主题干扰 | HNSW and IVFFlat are vector indexes, but which technique compresses vectors to shrink memory? | `Product quantization compresses vectors` | ✓@1 | ✓@1 |
+| 23 | 多主题干扰 | Chunking and metadata both aid retrieval, but which one enables citation and auditing? | `citation and auditability` | ✓@1 | ✓@1 |
+| 24 | 多主题干扰 | Self-attention and multi-head attention are transformer parts; which one injects word order? | `Positional encodings inject order information` | ✓@1 | ✓@1 |
+| 25 | 多主题干扰 | Chunking splits text and vector databases index embeddings; which Postgres add-on stores vectors? | `pgvector extension` | ✓@1 | ✓@2 |
+| 26 | 多主题干扰 | BM25 excels at exact terms while dense retrieval captures meaning; what merges their ranked lists? | `Reciprocal rank fusion` | ✓@1 | ✓@1 |
+| 27 | 反向否定 | Which retrieval signal does NOT need dense vector embeddings? | `BM25 handles exact keyword matching` | ✓@2 | ✓@1 |
+| 28 | 反向否定 | What should a chunking strategy avoid when splitting long passages? | `avoid cutting sentences in half` | ✓@1 | ✓@1 |
+| 29 | 反向否定 | Why is score normalization unnecessary for reciprocal rank fusion? | `without needing score normalization` | ✓@1 | ✓@1 |
+| 30 | 反向否定 | What should generation be grounded in instead of only the model's internal parameters? | `external knowledge base` | ✓@1 | ✓@1 |
+| 31 | 反向否定 | Which numeric format is used to train with less memory but is NOT full precision? | `FP16 and BF16` | ✓@1 | ✓@1 |
+| 32 | 反向否定 | Which index avoids building a graph and instead partitions vectors into cells? | `IVFFlat partitions vectors into clusters` | ✓@2 | ✓@1 |
+
+## 汇总指标
+
+| 指标 | Reranker ON | Reranker OFF |
+|---|---|---|
+| top-1 命中率 | 90.62% | 81.25% |
+| top-3 命中率 | 100.00% | 100.00% |
+| top-5 命中率 | 100.00% | 100.00% |
+| MRR | 0.9479 | 0.8906 |
+| nDCG@5 | 0.9613 | 0.9185 |
+

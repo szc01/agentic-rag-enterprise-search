@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="620" viewBox="0 0 920 620" font-family="Microsoft YaHei, PingFang SC, sans-serif">
+  <defs>
+    <marker id="m1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#3b6fb5"/>
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="920" height="620" fill="#ffffff"/>
+
+  <!-- 标题 -->
+  <text x="460" y="34" font-size="16" font-weight="bold" text-anchor="middle" fill="#1f3a5f">系统数据库 E-R 图</text>
+
+  <!-- ============ documents 实体（左上） ============ -->
+  <g>
+    <rect x="40" y="70" width="360" height="30" rx="6" fill="#3b6fb5"/>
+    <text x="220" y="90" font-size="14" font-weight="bold" text-anchor="middle" fill="#ffffff">documents 文档表</text>
+    <rect x="40" y="100" width="360" height="220" rx="0" fill="#f4f8fd" stroke="#3b6fb5"/>
+    <g font-size="12" fill="#1f3a5f">
+      <text x="54" y="126">id (PK, int)         文档主键</text>
+      <text x="54" y="150">filename (varchar 255)  文件名</text>
+      <text x="54" y="174">file_path (varchar 500)  存储路径</text>
+      <text x="54" y="198">file_type (varchar 20)   文件类型</text>
+      <text x="54" y="222">title (varchar 500)      标题</text>
+      <text x="54" y="246">summary (text)          文档摘要</text>
+      <text x="54" y="270">total_chunks (int)      分片总数</text>
+      <text x="54" y="294">status (varchar 20)     状态</text>
+      <text x="54" y="310" fill="#8a5f1c">created_at / updated_at</text>
+    </g>
+  </g>
+
+  <!-- ============ chunks 实体（右上） ============ -->
+  <g>
+    <rect x="500" y="70" width="380" height="30" rx="6" fill="#2f9e6b"/>
+    <text x="690" y="90" font-size="14" font-weight="bold" text-anchor="middle" fill="#ffffff">chunks 文档分片表</text>
+    <rect x="500" y="100" width="380" height="250" rx="0" fill="#f2faf6" stroke="#2f9e6b"/>
+    <g font-size="12" fill="#1f3a5f">
+      <text x="514" y="126">id (PK, int)               分片主键</text>
+      <text x="514" y="150">document_id (FK, int)     所属文档</text>
+      <text x="514" y="174">chunk_index (int)         文档内序号</text>
+      <text x="514" y="198">content (text)           分片文本</text>
+      <text x="514" y="222">embedding (Vector(1024)) 向量嵌入</text>
+      <text x="514" y="246">metadata (JSON)          元数据</text>
+      <text x="514" y="270">token_count (int)         token 数</text>
+      <text x="514" y="286" fill="#8a5f1c">created_at</text>
+      <text x="514" y="310" font-size="11" fill="#c0563b">● HNSW 向量索引（余弦距离）</text>
+      <text x="514" y="330" font-size="11" fill="#c0563b">● document_id 普通索引</text>
+    </g>
+  </g>
+
+  <!-- ============ query_logs 实体（左下） ============ -->
+  <g>
+    <rect x="40" y="390" width="360" height="30" rx="6" fill="#9b5fc4"/>
+    <text x="220" y="410" font-size="14" font-weight="bold" text-anchor="middle" fill="#ffffff">query_logs 查询日志表</text>
+    <rect x="40" y="420" width="360" height="180" rx="0" fill="#faf4fd" stroke="#9b5fc4"/>
+    <g font-size="12" fill="#1f3a5f">
+      <text x="54" y="446">id (PK, int)            日志主键</text>
+      <text x="54" y="470">question (text)         用户问题</text>
+      <text x="54" y="494">answer (text)           生成答案</text>
+      <text x="54" y="518">citations (JSON)        引用来源</text>
+      <text x="54" y="542">confidence_score (float) 置信度</text>
+      <text x="54" y="566">latency_ms (int)        端到端延迟</text>
+      <text x="54" y="590" fill="#8a5f1c">retrieval_details / user_feedback / …</text>
+    </g>
+  </g>
+
+  <!-- ============ reports 实体（右下） ============ -->
+  <g>
+    <rect x="500" y="390" width="380" height="30" rx="6" fill="#d9774a"/>
+    <text x="690" y="410" font-size="14" font-weight="bold" text-anchor="middle" fill="#ffffff">reports 调研报告表</text>
+    <rect x="500" y="420" width="380" height="180" rx="0" fill="#fdf6f1" stroke="#d9774a"/>
+    <g font-size="12" fill="#1f3a5f">
+      <text x="514" y="446">id (PK, int)          报告主键</text>
+      <text x="514" y="470">topic (text)          调研主题</text>
+      <text x="514" y="494">status (varchar 20)   状态</text>
+      <text x="514" y="518">depth (int)           检索深度</text>
+      <text x="514" y="542">content (text)        Markdown 全文</text>
+      <text x="514" y="566">citations (JSON)      引用来源</text>
+      <text x="514" y="590" fill="#8a5f1c">stats / completed_at / …</text>
+    </g>
+  </g>
+
+  <!-- 关系连线 documents 1 — N chunks -->
+  <line x1="400" y1="180" x2="500" y2="180" stroke="#3b6fb5" stroke-width="2" marker-end="url(#m1)"/>
+  <text x="416" y="170" font-size="13" fill="#3b6fb5">1</text>
+  <text x="482" y="170" font-size="13" fill="#3b6fb5">N</text>
+  <rect x="406" y="150" width="92" height="24" rx="4" fill="#ffffff" stroke="#3b6fb5"/>
+  <text x="452" y="166" font-size="11" text-anchor="middle" fill="#3b6fb5">包含（分片归属）</text>
+
+  <!-- 图例说明 -->
+  <text x="460" y="610" font-size="11" text-anchor="middle" fill="#6b6b6b">PK = 主键　FK = 外键　documents 与 chunks 为一对多关系（document_id 外键，级联删除）；query_logs 与 reports 为独立业务表</text>
+</svg>

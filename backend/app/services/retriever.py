@@ -1,0 +1,403 @@
+"""混合检索器：BM25（稀疏）+ 向量（稠密）+ Reranker（重排）"""
+from __future__ import annotations
+
+import asyncio
+import logging
+import math
+import re
+from dataclasses import dataclass, field
+from typing import Optional
+
+import jieba
+
+logger = logging.getLogger(__name__)
+
+# jieba 首次分词会打印 "Building prefix dict..." 等 DEBUG 日志，压到 WARNING 减少噪声
+jieba.setLogLevel(logging.WARNING)
+
+# RRF 融合常数（经典取值 60）
+RRF_K = 60
+
+# 中文停用词表（BM25 分词时过滤高频虚词/代词/标点，保留内容词）
+CHINESE_STOPWORDS = frozenset({
+    "的", "了", "和", "与", "或", "及", "以及", "并且", "而且", "但是", "然而",
+    "在", "是", "有", "为", "被", "把", "对", "向", "从", "到", "于", "由",
+    "这", "那", "其", "该", "此", "之", "个", "些", "各", "每", "某", "等",
+    "而", "但", "并", "且", "也", "都", "就", "要", "能", "会", "可以", "可",
+    "我们", "你们", "他们", "它们", "自己", "什么", "怎么", "如何", "为什么",
+    "哪些", "哪个", "这个", "那个", "这些", "那些", "一个", "一种", "一种",
+    "进行", "通过", "以及", "中", "上", "下", "内", "外", "时", "后", "前",
+    "不", "没", "无", "非", "更", "最", "较", "很", "太", "非常", "还", "又",
+    "再", "着", "过", "了", "呢", "吗", "啊", "吧", "么", "哦", "嗯", "呀",
+})
+
+
+@dataclass
+class RetrievalResult:
+    """单条检索结果（content/document_id 等由 hydrate 从数据库回填）"""
+    chunk_id: int
+    content: str = ""
+    document_id: int = 0
+    document_title: str = ""
+    metadata: dict = field(default_factory=dict)
+    # 分数
+    bm25_score: float = 0.0
+    vector_score: float = 0.0       # 余弦相似度 (0-1)
+    rerank_score: float = 0.0       # Reranker 分数 (0-1)
+    final_score: float = 0.0        # 最终融合分数（RRF 归一化到 0-1）
+
+
+class HybridRetriever:
+    """
+    混合检索管线：
+
+      1. BM25 稀疏检索 → 关键词精确匹配（处理专有名词/缩写）
+      2. 向量稠密检索 → pgvector 余弦距离（走 HNSW 索引）
+      3. RRF 融合 → 融合两路排序
+      4. （可选）BGE-Reranker 重排 → 对粗排 top-N 候选精排
+
+    BM25 索引为内存结构：首次检索或数据变更后（ingestion/delete 触发 invalidate）
+    从 PostgreSQL 全量加载 chunks 重建。TODO: 未来做真正的增量更新。
+    """
+
+    def __init__(
+        self,
+        bm25_weight: float = 0.3,
+        vector_weight: float = 0.4,
+        rerank_weight: float = 0.3,
+        top_k: int = 10,
+        reranker_enabled: bool | None = None,
+        rerank_candidates: int = 20,
+    ):
+        from app.config import settings
+
+        self.bm25_weight = bm25_weight
+        self.vector_weight = vector_weight
+        self.rerank_weight = rerank_weight
+        self.top_k = top_k
+        # 是否启用 Reranker（None 时读取配置，便于对比实验一键开关）
+        self.reranker_enabled = (
+            settings.reranker_enabled if reranker_enabled is None else reranker_enabled
+        )
+        # Reranker 重排的候选集大小（先粗排取 top-N，再精排）
+        self.rerank_candidates = rerank_candidates
+
+        # BM25 索引（内存字典，开发阶段；生产接 PostgreSQL tsvector）
+        self._bm25_model = None
+        self._bm25_chunk_ids: list[int] = []
+        self._index_built = False
+        self._index_dirty = False   # 数据变更后置位，下次检索时重建
+
+        # Reranker（lazy load）
+        self._reranker = None
+
+    # ── 索引管理 ──────────────────────────────
+
+    def build_bm25_index(self, chunks: list[dict]):
+        """
+        从 chunks 列表构建 BM25 倒排索引。
+
+        Args:
+            chunks: [{"chunk_id": int, "content": str, ...}, ...]
+        """
+        from rank_bm25 import BM25Okapi
+
+        corpus = []
+        chunk_ids = []
+        for ch in chunks:
+            tokens = self._tokenize(ch["content"])
+            corpus.append(tokens)
+            chunk_ids.append(ch["chunk_id"])
+
+        if not corpus:
+            self._bm25_model = None
+            self._bm25_chunk_ids = []
+            self._index_built = False
+            return
+
+        self._bm25_model = BM25Okapi(corpus)
+        self._bm25_chunk_ids = chunk_ids
+        self._index_built = True
+        logger.info(f"BM25 索引构建完成，共 {len(corpus)} 个分片")
+
+    async def ensure_index(self, db):
+        """确保 BM25 索引已构建：首次或数据变更后从 PG 全量加载重建。"""
+        if self._index_built and not self._index_dirty:
+            return
+        chunks = await self._load_chunks_from_db(db)
+        self.build_bm25_index(chunks)
+        self._index_dirty = False
+
+    def invalidate_index(self):
+        """文档新增/删除后调用，标记索引失效，下次检索时重建。"""
+        self._index_dirty = True
+        self._index_built = False
+        logger.info("BM25 索引已失效，将在下次检索时重建")
+
+    async def _load_chunks_from_db(self, db) -> list[dict]:
+        """从数据库加载全部 chunk（id + content）用于构建 BM25。"""
+        from sqlalchemy import select
+        from app.models.chunk import Chunk
+
+        result = await db.execute(select(Chunk.id, Chunk.content))
+        rows = result.all()
+        return [{"chunk_id": r.id, "content": r.content} for r in rows]
+
+    def _tokenize(self, text: str) -> list[str]:
+        """中文分词（jieba 精确模式 + 停用词过滤）；英文/数字/下划线按词切分。
+
+        相比旧版「字符 + 双字滑动窗口」，jieba 切出语义完整的词并过滤停用词，
+        可将 BM25 索引词汇表缩减约 34%；代价是字面命中率略降约 3pt，属
+        「以少量精度换取索引/内存精简」的取舍，更适合大规模知识库。
+        对比实验见 backend/output/tokenizer_compare.md。
+        """
+        text = text.lower()
+
+        # 英文 / 数字 / 下划线：按连续字母数字串切分（与旧版保持一致）
+        tokens = re.findall(r"[a-z0-9_]+", text)
+
+        # 中文部分：去掉英文/数字后交给 jieba 分词，过滤停用词与纯标点
+        chinese_part = re.sub(r"[a-z0-9_]+", " ", text)
+        for word in jieba.cut(chinese_part):
+            word = word.strip()
+            if not word or word in CHINESE_STOPWORDS:
+                continue
+            # 只保留含中文的词，丢弃标点与纯空白
+            if re.search(r"[一-鿿]", word):
+                tokens.append(word)
+        return tokens
+
+    def _tokenize_char_window(self, text: str) -> list[str]:
+        """旧版字符滑动窗口分词（保留用于「jieba vs 字符窗口」对比实验）。"""
+        text = text.lower()
+        english = re.findall(r"[a-z0-9_]+", text)
+        chinese_chars = re.findall(r"[一-鿿]", text)
+        chinese_bigrams = [
+            text[i:i+2] for i in range(len(text)-1)
+            if text[i] in chinese_chars and text[i+1] in chinese_chars
+        ]
+        return english + chinese_bigrams
+
+    # ── 检索方法 ──────────────────────────────
+
+    async def hybrid_search(
+        self,
+        query: str,
+        query_embedding: list[float],
+        db,  # AsyncSession
+        top_k: int | None = None,
+        mode: str = "hybrid",
+    ) -> list[RetrievalResult]:
+        """
+        执行检索，返回排序后的结果列表。
+
+        Args:
+            query: 用户查询文本
+            query_embedding: 查询向量（由 EmbeddingService 预计算）
+            db: 数据库会话
+            top_k: 返回数量
+            mode: 消融实验用检索模式。
+                  "hybrid"（默认）= BM25 + 向量 + RRF；
+                  "bm25" = 仅 BM25 稀疏检索；
+                  "vector" = 仅向量稠密检索。
+
+        Returns:
+            排序后的 RetrievalResult 列表（已回填 content/document_title/metadata）
+        """
+        k = top_k or self.top_k
+
+        # 候选集大小：启用 Reranker 时先粗排取更多候选（默认 20）再精排
+        candidate_k = max(k, self.rerank_candidates) if self.reranker_enabled else k
+
+        # 0. 确保 BM25 索引就绪（首次/失效后从 PG 重建）
+        await self.ensure_index(db)
+
+        # 1. BM25 稀疏检索（mode="vector" 时跳过）
+        bm25_results = (
+            self._bm25_search(query, candidate_k * 2)
+            if self._index_built and mode != "vector" else []
+        )
+
+        # 2. 向量稠密检索（mode="bm25" 时跳过；pgvector 余弦距离，走 HNSW 索引）
+        vector_results = (
+            await self._vector_search(query_embedding, candidate_k * 2, db)
+            if mode != "bm25" else []
+        )
+
+        # 3. 排序：单路模式直接用单路分数，hybrid 走 RRF 融合
+        if mode == "bm25":
+            ranked = bm25_results[:candidate_k]
+        elif mode == "vector":
+            ranked = vector_results[:candidate_k]
+        else:
+            ranked = self._rrf_fuse(bm25_results, vector_results, top_k=candidate_k)
+
+        # 4. 从 DB 回填 chunk 详情（content / document_title / metadata）
+        results = await self._hydrate_results(
+            ranked,
+            db,
+            bm25_map=dict(bm25_results),
+            vector_map=dict(vector_results),
+        )
+
+        # 5. Reranker 精排（对 top-N 候选重排后截断到 k）
+        if self.reranker_enabled and len(results) > k:
+            results = await self._rerank_results(query, results)
+
+        return results[:k]
+
+    def _bm25_search(self, query: str, top_k: int) -> list[tuple[int, float]]:
+        """BM25 检索"""
+        if not self._index_built or self._bm25_model is None:
+            return []
+        tokens = self._tokenize(query)
+        scores = self._bm25_model.get_scores(tokens)
+        indexed = sorted(enumerate(scores), key=lambda x: x[1], reverse=True)[:top_k]
+        return [(self._bm25_chunk_ids[i], float(s)) for i, s in indexed if s > 0]
+
+    async def _vector_search(
+        self,
+        query_embedding: list[float],
+        top_k: int,
+        db,
+    ) -> list[tuple[int, float]]:
+        """pgvector 余弦相似度检索（ORDER BY <=> 可命中 HNSW vector_cosine_ops）"""
+        from sqlalchemy import select
+        from app.models.chunk import Chunk
+
+        distance = Chunk.embedding.cosine_distance(query_embedding)
+        stmt = (
+            select(
+                Chunk.id,
+                (1 - distance).label("similarity"),
+            )
+            .where(Chunk.embedding.isnot(None))
+            .order_by(distance)
+            .limit(top_k)
+        )
+        result = await db.execute(stmt)
+        rows = result.all()
+        return [(row[0], float(row[1])) for row in rows]
+
+    def _rrf_fuse(
+        self,
+        bm25_results: list[tuple[int, float]],
+        vector_results: list[tuple[int, float]],
+        top_k: int,
+        k: int = RRF_K,
+    ) -> list[tuple[int, float]]:
+        """
+        Reciprocal Rank Fusion：按各路的排名倒数加和。
+
+        返回 [(chunk_id, fused_score)]，分数归一化到 0-1：
+        同时出现在两路第一名时 = 1.0。
+        """
+        rrf: dict[int, float] = {}
+        for rank, (chunk_id, _score) in enumerate(bm25_results):
+            rrf[chunk_id] = rrf.get(chunk_id, 0.0) + 1.0 / (k + rank + 1)
+        for rank, (chunk_id, _score) in enumerate(vector_results):
+            rrf[chunk_id] = rrf.get(chunk_id, 0.0) + 1.0 / (k + rank + 1)
+
+        ranked = sorted(rrf.items(), key=lambda x: x[1], reverse=True)[:top_k]
+
+        n_rankers = (1 if bm25_results else 0) + (1 if vector_results else 0)
+        max_score = n_rankers / (k + 1)
+        if max_score > 0:
+            return [(cid, round(s / max_score, 4)) for cid, s in ranked]
+        return ranked
+
+    async def _hydrate_results(
+        self,
+        ranked: list[tuple[int, float]],
+        db,
+        bm25_map: dict[int, float],
+        vector_map: dict[int, float],
+    ) -> list[RetrievalResult]:
+        """根据 chunk_id 列表回填 content / document_title / metadata。"""
+        if not ranked:
+            return []
+
+        from sqlalchemy import select
+        from app.models.chunk import Chunk
+        from app.models.document import Document
+
+        ids = [cid for cid, _s in ranked]
+        stmt = (
+            select(Chunk, Document.title, Document.filename)
+            .join(Document, Chunk.document_id == Document.id)
+            .where(Chunk.id.in_(ids))
+        )
+        rows = (await db.execute(stmt)).all()
+        row_map = {chunk.id: (chunk, title, filename) for chunk, title, filename in rows}
+
+        results = []
+        for chunk_id, fused_score in ranked:
+            item = row_map.get(chunk_id)
+            if item is None:
+                continue
+            chunk, title, filename = item
+            results.append(RetrievalResult(
+                chunk_id=chunk_id,
+                content=chunk.content,
+                document_id=chunk.document_id,
+                document_title=title or filename,
+                metadata=chunk.metadata_ or {},
+                bm25_score=bm25_map.get(chunk_id, 0.0),
+                vector_score=vector_map.get(chunk_id, 0.0),
+                final_score=fused_score,
+            ))
+
+        return results
+
+    # ── Reranker ─────────────────────────────────────────────
+
+    @staticmethod
+    def _sigmoid(x: float) -> float:
+        """把 CrossEncoder 原始 logits 归一化到 (0, 1)。"""
+        return 1.0 / (1.0 + math.exp(-x))
+
+    async def _rerank_results(
+        self,
+        query: str,
+        candidates: list[RetrievalResult],
+    ) -> list[RetrievalResult]:
+        """BGE-Reranker 精排：对粗排候选重打分并融合。
+
+        注意：本机 sentence-transformers 版本的 CrossEncoder 没有
+        compute_score 方法（只有 predict）；且 predict 对单标签模型默认
+        已应用 sigmoid，返回值即 (0, 1) 概率，可直接与 RRF 融合分加权，
+        无需再归一化。
+        """
+        if not self._reranker:
+            # 模型下载/加载是阻塞操作，丢线程池避免卡住事件循环
+            await asyncio.to_thread(self._load_reranker)
+
+        pairs = [[query, c.content] for c in candidates]
+        # CrossEncoder 推理是 CPU/GPU 阻塞，丢线程池
+        scores = await asyncio.to_thread(self._reranker.predict, pairs)
+
+        for r, s in zip(candidates, scores):
+            s = float(s)
+            # 防御性截断：确保融合分处于 (0, 1)，避免个别版本返回原始 logits
+            if s < 0.0 or s > 1.0:
+                s = self._sigmoid(s)
+            r.rerank_score = s
+            r.final_score = (
+                r.final_score * (1 - self.rerank_weight) +
+                r.rerank_score * self.rerank_weight
+            )
+
+        return sorted(candidates, key=lambda x: x.final_score, reverse=True)
+
+    def _load_reranker(self):
+        """Lazy load Reranker 模型"""
+        from sentence_transformers import CrossEncoder
+        from app.config import settings
+
+        logger.info("正在加载 Reranker 模型...")
+        self._reranker = CrossEncoder(settings.reranker_model, device=settings.embedding_device)
+        logger.info("Reranker 模型加载完成")
+
+
+# 全局单例
+retriever = HybridRetriever()

@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="560" viewBox="0 0 920 560" font-family="Microsoft YaHei, PingFang SC, sans-serif">
+  <defs>
+    <marker id="u1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#3b6fb5"/>
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="920" height="560" fill="#ffffff"/>
+  <text x="460" y="34" font-size="16" font-weight="bold" text-anchor="middle" fill="#1f3a5f">系统用例图</text>
+
+  <!-- 系统边界 -->
+  <rect x="260" y="70" width="520" height="440" rx="14" fill="#f7fafd" stroke="#3b6fb5" stroke-width="2"/>
+  <text x="520" y="96" font-size="14" font-weight="bold" text-anchor="middle" fill="#3b6fb5">企业智能搜索与自动调研系统</text>
+
+  <!-- Actor 用户 -->
+  <g>
+    <circle cx="100" cy="240" r="22" fill="#ffffff" stroke="#3b6fb5" stroke-width="2"/>
+    <line x1="100" y1="262" x2="100" y2="330" stroke="#3b6fb5" stroke-width="2"/>
+    <line x1="70" y1="290" x2="130" y2="290" stroke="#3b6fb5" stroke-width="2"/>
+    <line x1="100" y1="330" x2="72" y2="385" stroke="#3b6fb5" stroke-width="2"/>
+    <line x1="100" y1="330" x2="128" y2="385" stroke="#3b6fb5" stroke-width="2"/>
+    <text x="100" y="415" font-size="13" font-weight="bold" text-anchor="middle" fill="#1f3a5f">用户</text>
+    <text x="100" y="434" font-size="11" text-anchor="middle" fill="#6b6b6b">员工 / 知识管理员</text>
+  </g>
+
+  <!-- 用例椭圆 -->
+  <g font-size="12" fill="#1f3a5f">
+    <ellipse cx="420" cy="130" rx="115" ry="26" fill="#ffffff" stroke="#3b6fb5"/>
+    <text x="420" y="135" text-anchor="middle">上传文档入库</text>
+
+    <ellipse cx="420" cy="205" rx="115" ry="26" fill="#ffffff" stroke="#3b6fb5"/>
+    <text x="420" y="210" text-anchor="middle">管理知识库文档</text>
+
+    <ellipse cx="420" cy="280" rx="120" ry="26" fill="#ffffff" stroke="#5a3b9b"/>
+    <text x="420" y="285" text-anchor="middle">智能问答（多轮）</text>
+
+    <ellipse cx="420" cy="355" rx="120" ry="26" fill="#ffffff" stroke="#5a3b9b"/>
+    <text x="420" y="360" text-anchor="middle">提交回答反馈</text>
+
+    <ellipse cx="660" cy="200" rx="115" ry="26" fill="#ffffff" stroke="#2f9e6b"/>
+    <text x="660" y="205" text-anchor="middle">生成调研报告</text>
+
+    <ellipse cx="660" cy="275" rx="115" ry="26" fill="#ffffff" stroke="#2f9e6b"/>
+    <text x="660" y="280" text-anchor="middle">下载报告 MD/PDF</text>
+
+    <ellipse cx="660" cy="350" rx="115" ry="26" fill="#ffffff" stroke="#d9774a"/>
+    <text x="660" y="355" text-anchor="middle">查看运营看板</text>
+  </g>
+
+  <!-- Actor → 用例连线 -->
+  <g stroke="#3b6fb5" stroke-width="1.5">
+    <line x1="123" y1="232" x2="305" y2="135" marker-end="url(#u1)"/>
+    <line x1="123" y1="240" x2="305" y2="207" marker-end="url(#u1)"/>
+    <line x1="123" y1="252" x2="300" y2="280" marker-end="url(#u1)"/>
+    <line x1="123" y1="260" x2="300" y2="355" marker-end="url(#u1)"/>
+    <line x1="123" y1="268" x2="545" y2="205" marker-end="url(#u1)"/>
+    <line x1="123" y1="276" x2="545" y2="278" marker-end="url(#u1)"/>
+    <line x1="123" y1="284" x2="545" y2="350" marker-end="url(#u1)"/>
+  </g>
+
+  <!-- include 关系 -->
+  <g stroke="#6b6b6b" stroke-width="1.2" stroke-dasharray="5,3">
+    <line x1="540" y1="280" x2="545" y2="205" />
+  </g>
+  <text x="585" y="240" font-size="10" fill="#6b6b6b">《include》</text>
+
+  <text x="460" y="530" font-size="11" text-anchor="middle" fill="#8a5f1c">注：虚线表示「智能问答」用例包含「生成调研报告」环节；反馈、看板与文档管理相对独立</text>
+</svg>
