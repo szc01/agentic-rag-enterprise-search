@@ -4,6 +4,13 @@
 
 > 技术栈：FastAPI · LangGraph · PostgreSQL + pgvector · Redis · BGE（本地 Embedding / Reranker）· DeepSeek LLM · 原生 JS 前端
 
+## 核心亮点
+
+- **多智能体 Agentic RAG**：LangGraph 编排 Planner → Retrieval → Critic → Synthesizer，信息不足自动补查、防死循环。
+- **混合检索 + 精排**：BM25 + pgvector 向量 + RRF 融合 + BGE-Reranker，兼顾关键词精确匹配与语义召回。
+- **可量化评测**：110 条评测集 × 385 分片知识库四组消融——完整管线 top-1 76.36%、MRR 0.8026、nDCG@5 0.8150；RAGAS 生成质量 faithfulness 0.75。
+- **工程闭环**：文档入库 → 多轮问答 → 调研报告（MD/PDF）→ 反馈看板；pytest 62 用例全绿。
+
 ---
 
 ## 1. 项目简介与核心特性
