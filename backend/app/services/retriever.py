@@ -69,6 +69,9 @@ class HybridRetriever:
         top_k: int = 10,
         reranker_enabled: bool | None = None,
         rerank_candidates: int = 20,
+        rerank_timeout: float | None = None,
+        rerank_top_k: int | None = None,
+        rerank_fallback_on_timeout: bool | None = None,
     ):
         from app.config import settings
 
@@ -82,6 +85,18 @@ class HybridRetriever:
         )
         # Reranker 重排的候选集大小（先粗排取 top-N，再精排）
         self.rerank_candidates = rerank_candidates
+        # Day 9 Task 5：超时 + 截断 + 降级开关（None 时读 settings）
+        self.rerank_timeout = (
+            settings.rerank_timeout if rerank_timeout is None else rerank_timeout
+        )
+        self.rerank_top_k = (
+            settings.rerank_top_k if rerank_top_k is None else rerank_top_k
+        )
+        self.rerank_fallback_on_timeout = (
+            settings.rerank_fallback_on_timeout
+            if rerank_fallback_on_timeout is None
+            else rerank_fallback_on_timeout
+        )
 
         # 查询增强开关（默认读配置；eval 时通过 hybrid_search(enhance=...) 覆盖）
         self.query_rewrite_enabled = settings.query_rewrite_enabled
@@ -117,11 +132,25 @@ class HybridRetriever:
         logger.info(f"BM25 索引构建完成，共 {len(self._chunk_ids)} 个分片")
 
     async def ensure_index(self, db):
-        """确保 BM25 索引已构建：首次从 PG 全量加载；之后由增量方法维护。"""
+        """确保 BM25 索引已构建：优先尝试从 PG 快照加载；否则全量从 PG 重建 + 落盘。
+
+        启动期 cold start 时实测加载 ≈25ms，远快于全量重建 ≈1.8s（402 chunks）。
+        快照校验失败（schema 不兼容 / 与 chunks 表脱钩）会自动 fallback 到全量重建。
+        """
         if self._index_built:
             return
+        # 0. 优先尝试 PG 快照加载（Day 9 Task 4）
+        from app.services.bm25_persistence import load_snapshot, apply_snapshot, save_snapshot
+
+        snap = await load_snapshot(db)
+        if snap is not None:
+            apply_snapshot(self, snap)
+            return
+
+        # 1. Fallback：全量从 PG 重建 → 立刻落盘，下次启动走快照路径
         chunks = await self._load_chunks_from_db(db)
         self.build_bm25_index(chunks)
+        await save_snapshot(self, db)
 
     async def add_chunks(self, chunks: list[dict], db) -> None:
         """增量新增 chunks（若索引尚未构建，先全量加载现有 chunk，避免残缺索引）。"""
@@ -132,6 +161,9 @@ class HybridRetriever:
         self._index_built = True
         if changed:
             self._idf_dirty = True
+            # Day 9 Task 4：增量新增后落盘快照
+            from app.services.bm25_persistence import save_snapshot
+            await save_snapshot(self, db)
 
     async def remove_chunks(self, chunk_ids: list[int], db) -> None:
         """增量删除 chunks（幂等：不存在的 chunk_id 直接跳过）。"""
@@ -141,6 +173,9 @@ class HybridRetriever:
             changed |= self._remove_chunk(cid)
         if changed:
             self._idf_dirty = True
+            # Day 9 Task 4：增量删除后落盘快照
+            from app.services.bm25_persistence import save_snapshot
+            await save_snapshot(self, db)
 
     def _reset_index(self) -> None:
         self._postings = {}
@@ -355,7 +390,7 @@ class HybridRetriever:
 
         # 5. Reranker 精排（对 top-N 候选重排后截断到 k）
         if self.reranker_enabled and len(results) > k:
-            results = await self._rerank_results(query, results)
+            results = await self._safe_rerank(query, results, k)
 
         return results[:k]
 
@@ -407,7 +442,7 @@ class HybridRetriever:
 
         merged = self._rrf_merge_results(result_lists, candidate_k)
         if self.reranker_enabled and len(merged) > k:
-            merged = await self._rerank_results(query, merged)
+            merged = await self._safe_rerank(query, merged, k)
         return merged[:k]
 
     def _rrf_merge_results(
@@ -559,6 +594,58 @@ class HybridRetriever:
         return results
 
     # ── Reranker ─────────────────────────────────────────────
+
+    async def _safe_rerank(
+        self,
+        query: str,
+        candidates: list[RetrievalResult],
+        k: int,
+    ) -> list[RetrievalResult]:
+        """Reranker 调用入口：先按 rerank_top_k 截断，再用 wait_for 包超时，超时按开关降级。
+
+        设计动机：CPU 版 bge-reranker-base 在候选集 30、单条 ~250 字时 P50 ≈ 1.36s；
+        偶发长尾会拖到 2-3s，体感等待差。设置硬超时 + 截断 + 降级，让精排失败
+        时无缝回落到粗排（RRF 归一化分数），保证 P95 总在 2s 内。
+
+        Args:
+            query: 用户查询
+            candidates: 粗排候选
+            k: 最终返回条数
+
+        Returns:
+            精排后结果；若 Reranker 超时降级则返回按 final_score 排序的粗排候选前 k 条。
+        """
+        if not candidates:
+            return candidates
+
+        # 1. 截断送精排的候选数（rerank_top_k），避免长尾拖慢精排本身
+        rerank_in = candidates[: max(k, self.rerank_top_k)]
+
+        # 2. 超时硬护栏：超时后按 rerank_fallback_on_timeout 决定降级还是抛错
+        try:
+            reranked = await asyncio.wait_for(
+                self._rerank_results(query, rerank_in),
+                timeout=self.rerank_timeout,
+            )
+            return reranked[:k]
+        except asyncio.TimeoutError:
+            logger.warning(
+                f"Reranker 超时（>{self.rerank_timeout:.2f}s，候选 {len(rerank_in)} 条），"
+                f"降级到粗排 top{k}"
+            )
+            if self.rerank_fallback_on_timeout:
+                # 回退：按粗排 final_score 取 top-k（不标注 rerank_score=0，便于排查超时）
+                for r in candidates:
+                    r.rerank_score = 0.0
+                return sorted(candidates, key=lambda x: x.final_score, reverse=True)[:k]
+            raise
+        except Exception as e:
+            logger.error(f"Reranker 异常：{e!r}，降级到粗排 top{k}")
+            if self.rerank_fallback_on_timeout:
+                for r in candidates:
+                    r.rerank_score = 0.0
+                return sorted(candidates, key=lambda x: x.final_score, reverse=True)[:k]
+            raise
 
     @staticmethod
     def _sigmoid(x: float) -> float:

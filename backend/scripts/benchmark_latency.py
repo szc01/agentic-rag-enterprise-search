@@ -178,8 +178,13 @@ async def main() -> int:
     import os
     os.chdir(BACKEND_DIR)
 
+    from app import models  # noqa: F401  确保 ORM 模型注册到 metadata（建表用）
+    from app.database import AsyncSessionLocal, ensure_schema
+
+    # Day 9 Task 4: 确保 bm25_index_state 等表存在（脚本独立运行，不走应用 lifespan）
+    await ensure_schema()
+
     from sqlalchemy import select
-    from app.database import AsyncSessionLocal
     from app.models.chunk import Chunk
     from app.services.retriever import HybridRetriever
     from app.services.embedding import embedding_service
@@ -291,7 +296,7 @@ def _build_markdown(rows: list[dict], throughput: dict[int, float], index_stats:
     lines.append("")
     lines.append(f"- 基准语料：{index_stats['n']} chunks；增量批次：49 chunks（一个合成文档）")
     lines.append("")
-    lines.append("| 操作 | 耗时（当前 385 chunks） | 估算（1 万 chunks） |")
+    lines.append(f"| 操作 | 耗时（当前 {index_stats['n']} chunks） | 估算（1 万 chunks） |")
     lines.append("|---|---|---|")
     lines.append(f"| 全量重建 | {index_stats['full_ms']:.2f} ms | {index_stats['full_10k_ms']:.2f} ms |")
     lines.append(f"| 增量新增（49 chunks） | {index_stats['add_ms']:.2f} ms | {index_stats['add_10k_ms']:.2f} ms |")

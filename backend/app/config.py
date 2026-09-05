@@ -58,6 +58,11 @@ class Settings(BaseSettings):
     reranker_model: str = "BAAI/bge-reranker-base"
     reranker_enabled: bool = True  # 检索对比实验需要能一键关闭
 
+    # Reranker 性能与降级（Day 9 Task 5）
+    rerank_timeout: float = 1.5            # Reranker predict 的硬超时（秒），超出后降级到 RRF 粗排
+    rerank_top_k: int = 30                  # 送入 Reranker 的最大候选数（防止候选过多拖慢精排）
+    rerank_fallback_on_timeout: bool = True # 超时是否自动降级（False 则抛错中断检索）
+
     # === 查询增强（默认关，不影响既有行为）===
     query_rewrite_enabled: bool = False  # LLM 查询改写（多查询召回合并）
     hyde_enabled: bool = False  # HyDE 假设文档向量

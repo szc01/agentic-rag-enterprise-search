@@ -52,6 +52,17 @@ async def ensure_schema() -> None:
             "CREATE INDEX IF NOT EXISTS ix_chunks_embedding_hnsw "
             "ON chunks USING hnsw (embedding vector_cosine_ops)"
         ))
+        # Day 9 Task 4: BM25 索引状态表（JSONB 快照，单行）
+        await conn.execute(text(
+            "CREATE TABLE IF NOT EXISTS bm25_index_state ("
+            "  singleton_id VARCHAR(20) PRIMARY KEY DEFAULT 'singleton',"
+            "  state JSONB NOT NULL DEFAULT '{}'::jsonb,"
+            "  chunk_count INTEGER NOT NULL DEFAULT 0,"
+            "  total_tokens INTEGER NOT NULL DEFAULT 0,"
+            "  schema_version INTEGER NOT NULL DEFAULT 1,"
+            "  saved_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+            ")"
+        ))
         # query_logs 增量列（幂等）：早期版本的 query_logs 表可能已存在，
         # create_all 不会给既有表加列，这里用 ALTER 补上新增字段。
         await conn.execute(text(

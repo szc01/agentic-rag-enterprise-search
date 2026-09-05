@@ -10,7 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from app.config import settings
 from app.database import engine, ensure_schema
 from app import models  # noqa: F401  确保 ORM 模型注册到 metadata（建表）
-from app.api import documents, search, report, dashboard
+from app.api import documents, search, report, dashboard, admin
 
 # 纯静态前端目录（backend/static/）
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
@@ -46,6 +46,7 @@ app.include_router(documents.router, prefix="/api/documents", tags=["文档管�
 app.include_router(search.router, prefix="/api/search", tags=["搜索问答"])
 app.include_router(report.router, prefix="/api/reports", tags=["调研报告"])
 app.include_router(dashboard.router, prefix="/api/dashboard", tags=["运营看板"])
+app.include_router(admin.router, prefix="/api/admin", tags=["运维管理"])
 
 
 @app.get("/", include_in_schema=False)

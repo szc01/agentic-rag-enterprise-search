@@ -7,5 +7,6 @@ from app.models.document import Document
 from app.models.chunk import Chunk
 from app.models.query_log import QueryLog
 from app.models.report import Report
+from app.models.bm25_index_state import BM25IndexState
 
-__all__ = ["Document", "Chunk", "QueryLog", "Report"]
+__all__ = ["Document", "Chunk", "QueryLog", "Report", "BM25IndexState"]

@@ -34,7 +34,9 @@ class TestHybridRetriever:
     @pytest.mark.asyncio
     async def test_ensure_index_builds_from_db(self):
         """首次检索时应从 DB 全量加载 chunks 构建 BM25"""
-        with patch.object(self.retriever, "_load_chunks_from_db", new_callable=AsyncMock) as mock_load:
+        with patch.object(self.retriever, "_load_chunks_from_db", new_callable=AsyncMock) as mock_load, \
+             patch("app.services.bm25_persistence.load_snapshot", new_callable=AsyncMock, return_value=None), \
+             patch("app.services.bm25_persistence.save_snapshot", new_callable=AsyncMock, return_value=True):
             mock_load.return_value = [
                 {"chunk_id": 1, "content": "RAG 检索增强"},
                 {"chunk_id": 2, "content": "向量数据库"},
@@ -54,8 +56,16 @@ class TestHybridRetriever:
         # 增量路径：先建 2 个 → 增 1 个 → 删 1 个
         inc = HybridRetriever(top_k=5)
         inc.build_bm25_index(chunks[:2])
-        await inc.add_chunks([chunks[2]], db=None)
-        await inc.remove_chunks([1], db=None)
+
+        # 临时把 ensure_index 设为同步空操作，避免内部调 save/load 走真实 db
+        async def _noop_ensure(db):
+            pass
+        inc.ensure_index = _noop_ensure
+        # patch save_snapshot（avoid 真实 db 提交）
+        with patch("app.services.bm25_persistence.save_snapshot",
+                   new_callable=AsyncMock, return_value=True):
+            await inc.add_chunks([chunks[2]], db=None)
+            await inc.remove_chunks([1], db=None)
 
         # 全量重建等价的最终索引 = {chunk 2, chunk 3}
         full = HybridRetriever(top_k=5)
