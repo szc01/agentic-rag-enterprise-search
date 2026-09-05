@@ -206,6 +206,8 @@ def build():
         "限制：CPU Reranker P50 1362.92ms，真实语料与 RAGAS 样本有限。",
         "展望：BM25 持久化、Reranker 服务化、扩充真实语料与评测集。",
     ], top=1.35, height=4.9)
+    add_text(slide, "工程规模：402 chunks · 110 评测 queries · pytest 65 passed",
+             0.55, 6.40, 12.20, 0.50, 14, RGBColor(80, 80, 80), True, PP_ALIGN.CENTER)
     add_footer(slide, 13, total)
 
     slide = prs.slides.add_slide(blank)
