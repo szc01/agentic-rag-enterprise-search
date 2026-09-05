@@ -54,3 +54,8 @@ htmlcov/
 # Alembic（版本文件保留，但数据文件忽略）
 alembic/versions/*.pyc
 report/.backup/
+
+
+# Office temp lock files
+~$*.pptx
+~$*.docx
