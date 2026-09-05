@@ -9,7 +9,7 @@
 - **多智能体 Agentic RAG**：LangGraph 编排 Planner → Retrieval → Critic → Synthesizer，信息不足自动补查、防死循环。
 - **混合检索 + 查询增强**：BM25 + pgvector + RRF + BGE-Reranker；支持 LLM 查询改写 / HyDE，复杂查询 top-1 提升 9.09 个百分点。
 - **可量化评测**：110 条评测集 × 402 分片知识库（合成 + 真实语料）四组消融——完整管线 top-1 74.55%、MRR 0.7889、nDCG@5 0.8026；RAGAS faithfulness 0.69。
-- **工程闭环**：文档入库 → 多轮问答 → 调研报告（MD/PDF）→ 反馈看板；pytest 65 用例全绿，含检索性能基准与 BM25 增量索引。
+- **工程闭环**：文档入库 → 多轮问答 → 调研报告（MD/PDF）→ 反馈看板；pytest 92 用例全绿，含检索性能基准、BM25 增量索引与索引持久化（PG 快照，启动提速 ~70×）、Reranker 超时降级。
 
 ---
 
@@ -217,7 +217,7 @@ python -m uvicorn app:app --port 8000
 
 ---
 
-## 7. Day 1-8 功能清单
+## 7. Day 1-9 功能清单
 
 | 阶段 | 交付内容 |
 |---|---|
@@ -229,6 +229,7 @@ python -m uvicorn app:app --port 8000
 | **Day 6** | 检索评测集加难例 + nDCG@5、报告 PDF 导出（Chrome headless）、README / 部署文档、多轮对话（chat history） |
 | **Day 7** | 评测集 + 知识库扩量（300-500 chunks / 100+ 条）、四组消融实验、BM25 中文分词升级（jieba + 停用词）、RAGAS 生成质量评测、LangGraph checkpointer 会话持久化 |
 | **Day 8** | 查询增强（查询改写 + HyDE）、检索性能基准（延迟/吞吐/阶段耗时）、BM25 索引增量更新、真实公开语料混合 + RAGAS 样本扩到 40+ |
+| **Day 9** | 报告按学校模板重写（5 章 + 结论 + 仿宋 + 18pt）、BM25 索引持久化（PG JSONB 快照 + 启动提速 ~70×）、Reranker 超时降级 + Top-K 截断、答辩 PPT / 演示脚本 / 简历亮点 / 问答预演 |
 
 ---
 

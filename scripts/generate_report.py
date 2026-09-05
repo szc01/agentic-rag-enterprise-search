@@ -525,10 +525,12 @@ add_table(
 
 add_section_heading("5.4  检索性能基准")
 add_para(
-    "单次检索端到端延迟（Reranker OFF）P50 = 51.6ms；开启 Reranker 后 P50 = 1362.92ms，"
-    "其中 Reranker 占比约 90%（已通过超时降级 + Top-K 截断优化降至 ≤ 900ms）。"
-    "并发吞吐：单并发 0.52 qps，4 并发 0.76 qps，8 并发 0.80 qps。"
-    "BM25 倒排索引全量重建 402 chunks 用时 52.93ms，增量更新单 chunk 7.54ms（200 chunks 0.37ms）。"
+    "单次检索端到端延迟（Reranker OFF）P50 = 51.36ms；开启 Reranker 后 P50 = 1486.59ms、"
+    "P99 = 1631.62ms，Reranker 为绝对瓶颈（占比约 97%）。"
+    "通过 asyncio.wait_for 超时降级（1.5s 硬超时），P99 长尾较优化前的 3130.82ms 压缩到 1631.62ms"
+    "（降幅约 48%），避免偶发慢查询拖垮体验；Top-K 截断（rerank_top_k=30）则保证候选增多时精排耗时可控。"
+    "并发吞吐：单并发 0.33 qps，4 并发 2.03 qps，8 并发 3.51 qps（CrossEncoder 经线程池并行）。"
+    "BM25 倒排索引全量重建 402 chunks 用时 838.61ms，增量新增 49 chunks 111.73ms、增量删除 2.85ms。"
 )
 
 add_section_heading("5.5  测试结论")
@@ -537,7 +539,7 @@ add_para(
     "查询改写对复杂问题有明显增益（+9.09pt）。生成质量层面，RAGAS 四指标均在 0.6 以上，"
     "context_recall 达到 0.84 表明检索覆盖度良好。"
     "性能层面，单次检索 P50 延迟可接受，并发吞吐满足中小规模企业知识库需求。"
-    "pytest 单元与集成测试 65 passed。"
+    "pytest 单元与集成测试 92 passed。"
 )
 
 doc.add_page_break()
@@ -559,7 +561,8 @@ add_para(
 )
 add_para(
     "系统仍存在以下不足：（1）BM25 倒排索引虽已支持跨进程持久化，但单实例重启时仍需从数据库"
-    "反序列化；（2）Embedding 与 Reranker 在 CPU 上推理，虽已通过工程优化降低延迟，"
+    "反序列化；（2）Embedding 与 Reranker 在 CPU 上推理，Reranker 精排 P50 约 1.49s 仍为主要瓶颈，"
+    "已通过超时降级（P99 从 3.13s 压缩到 1.63s）与 Top-K 截断缓解长尾，"
     "但大批量入库与高并发下吞吐仍受限；（3）评测语料以程序化合成的企业文档为主，"
     "真实公开文档占比较小；（4）RAGAS 评测样本规模仍有限。"
 )
